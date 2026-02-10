@@ -205,7 +205,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                 style={{
                                     background: 'transparent',
                                     border: 'none',
-                                    color: 'rgba(0, 255, 136, 0.7)',
+                                    color: 'rgba(255, 20, 147, 0.7)',
                                     cursor: 'pointer',
                                     fontSize: '24px',
                                     padding: '5px',
@@ -226,13 +226,13 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                     htmlFor="player-name"
                                     style={{
                                         display: 'block',
-                                        color: '#00ff88',
+                                        color: '#FFD700',
                                         fontSize: '14px',
                                         fontWeight: 'bold',
                                         marginBottom: '8px',
                                     }}
                                 >
-                                    Player Name
+                                    Contestant Name
                                 </label>
                                 <TextInput
                                     id="player-name"
@@ -250,17 +250,17 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                     htmlFor="player-description"
                                     style={{
                                         display: 'block',
-                                        color: '#00ff88',
+                                        color: '#FFD700',
                                         fontSize: '14px',
                                         fontWeight: 'bold',
                                         marginBottom: '8px',
                                     }}
                                 >
-                                    Player Description
+                                    Contestant Bio
                                 </label>
                                 <textarea
                                     id="player-description"
-                                    className="text-input-primary"
+                                    className="input-base"
                                     value={settings.playerDescription}
                                     onChange={(e) => handleInputChange('playerDescription', e.target.value)}
                                     placeholder="Describe your character..."
@@ -279,13 +279,13 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                 <label 
                                     style={{
                                         display: 'block',
-                                        color: '#00ff88',
+                                        color: '#FFD700',
                                         fontSize: '14px',
                                         fontWeight: 'bold',
                                         marginBottom: '12px',
                                     }}
                                 >
-                                    Generation Settings
+                                    Show Settings
                                 </label>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Disable Text to Speech Toggle */}
@@ -296,11 +296,11 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                         style={{
                                             padding: '12px',
                                             background: settings.disableTextToSpeech
-                                                ? 'rgba(0, 255, 136, 0.15)'
-                                                : 'rgba(0, 20, 40, 0.7)',
+                                                ? 'rgba(255, 20, 147, 0.15)'
+                                                : 'rgba(36, 7, 65, 0.7)',
                                             border: settings.disableTextToSpeech
-                                                ? '2px solid rgba(0, 255, 136, 0.5)'
-                                                : '2px solid rgba(255, 255, 255, 0.1)',
+                                                ? '2px solid rgba(255, 20, 147, 0.5)'
+                                                : '2px solid rgba(255, 215, 0, 0.3)',
                                             borderRadius: '8px',
                                             cursor: 'pointer',
                                             transition: 'all 0.2s ease',
@@ -314,8 +314,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 width: '20px',
                                                 height: '20px',
                                                 borderRadius: '4px',
-                                                background: settings.disableTextToSpeech ? '#00ff88' : 'rgba(255, 255, 255, 0.1)',
-                                                border: '2px solid ' + (settings.disableTextToSpeech ? '#00ff88' : 'rgba(255, 255, 255, 0.3)'),
+                                                background: settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
+                                                border: '2px solid ' + (settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 justifyContent: 'center',
@@ -328,7 +328,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                     initial={{ scale: 0 }}
                                                     animate={{ scale: 1 }}
                                                     style={{
-                                                        color: '#002210',
+                                                        color: '#FFFFFF',
                                                         fontSize: '14px',
                                                         fontWeight: 'bold',
                                                     }}
@@ -339,7 +339,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                         </div>
                                         <span
                                             style={{
-                                                color: settings.disableTextToSpeech ? '#00ff88' : 'rgba(255, 255, 255, 0.7)',
+                                                color: settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
                                                 fontSize: '13px',
                                                 fontWeight: settings.disableTextToSpeech ? 'bold' : 'normal',
                                             }}
@@ -392,8 +392,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                             left: 0,
                                                             right: 0,
                                                             marginTop: '4px',
-                                                            background: 'rgba(0, 20, 40, 0.95)',
-                                                            border: '2px solid rgba(0, 255, 136, 0.3)',
+                                                            background: 'rgba(36, 7, 65, 0.95)',
+                                                            border: '2px solid rgba(255, 20, 147, 0.5)',
                                                             borderRadius: '8px',
                                                             overflow: 'hidden',
                                                             zIndex: 1000,
@@ -416,12 +416,12 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                                     fontSize: '13px',
                                                                     transition: 'all 0.15s ease',
                                                                     borderBottom: index < languageSuggestions.length - 1 
-                                                                        ? '1px solid rgba(0, 255, 136, 0.1)' 
+                                                                        ? '1px solid rgba(255, 20, 147, 0.1)' 
                                                                         : 'none',
                                                                 }}
                                                                 onMouseEnter={(e) => {
-                                                                    e.currentTarget.style.background = 'rgba(0, 255, 136, 0.15)';
-                                                                    e.currentTarget.style.color = '#00ff88';
+                                                                    e.currentTarget.style.background = 'rgba(255, 20, 147, 0.15)';
+                                                                    e.currentTarget.style.color = '#FF1493';
                                                                 }}
                                                                 onMouseLeave={(e) => {
                                                                     e.currentTarget.style.background = 'transparent';
@@ -444,13 +444,13 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                 <label 
                                     style={{
                                         display: 'block',
-                                        color: '#00ff88',
+                                        color: '#FFD700',
                                         fontSize: '14px',
                                         fontWeight: 'bold',
                                         marginBottom: '12px',
                                     }}
                                 >
-                                    Tags
+                                    Content Preferences
                                 </label>
                                 <div 
                                     style={{
@@ -468,11 +468,11 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             style={{
                                                 padding: '12px',
                                                 background: value 
-                                                    ? 'rgba(0, 255, 136, 0.15)' 
-                                                    : 'rgba(0, 20, 40, 0.7)',
+                                                    ? 'rgba(255, 20, 147, 0.15)' 
+                                                    : 'rgba(36, 7, 65, 0.7)',
                                                 border: value
-                                                    ? '2px solid rgba(0, 255, 136, 0.5)'
-                                                    : '2px solid rgba(255, 255, 255, 0.1)',
+                                                    ? '2px solid rgba(255, 20, 147, 0.5)'
+                                                    : '2px solid rgba(255, 215, 0, 0.3)',
                                                 borderRadius: '8px',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s ease',
@@ -486,8 +486,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                     width: '20px',
                                                     height: '20px',
                                                     borderRadius: '4px',
-                                                    background: value ? '#00ff88' : 'rgba(255, 255, 255, 0.1)',
-                                                    border: '2px solid ' + (value ? '#00ff88' : 'rgba(255, 255, 255, 0.3)'),
+                                                    background: value ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
+                                                    border: '2px solid ' + (value ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
@@ -500,7 +500,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                         initial={{ scale: 0 }}
                                                         animate={{ scale: 1 }}
                                                         style={{
-                                                            color: '#002210',
+                                                            color: '#FFFFFF',
                                                             fontSize: '14px',
                                                             fontWeight: 'bold',
                                                         }}
@@ -511,7 +511,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             </div>
                                             <span
                                                 style={{
-                                                    color: value ? '#00ff88' : 'rgba(255, 255, 255, 0.7)',
+                                                    color: value ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
                                                     fontSize: '13px',
                                                     fontWeight: value ? 'bold' : 'normal',
                                                 }}

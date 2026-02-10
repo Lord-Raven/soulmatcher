@@ -5,6 +5,8 @@ import { LoadingScreen } from './LoadingScreen';
 import { TooltipProvider, useTooltip } from './TooltipContext';
 import TooltipBar from './TooltipBar';
 import { StudioScreen } from './StudioScreen';
+import { ThemeProvider } from '@mui/material';
+import theme from '../theme';
 
 /*
  * Base screen management; the Stage class will display this, and this will track the current screen being displayed.
@@ -71,8 +73,10 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
 
 export const BaseScreen: FC<BaseScreenProps> = ({ stage }) => {
     return (
-        <TooltipProvider>
-            <BaseScreenContent stage={stage} />
-        </TooltipProvider>
+        <ThemeProvider theme={theme}>
+            <TooltipProvider>
+                <BaseScreenContent stage={stage} />
+            </TooltipProvider>
+        </ThemeProvider>
     );
 }

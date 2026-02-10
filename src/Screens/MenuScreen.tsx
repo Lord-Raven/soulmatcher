@@ -11,6 +11,7 @@ import { SettingsScreen } from "./SettingsScreen";
 import { BlurredBackground } from "@lord-raven/novel-visualizer";
 import { Button, GridOverlay, Title } from "./UIComponents";
 import { motion } from "framer-motion";
+import { Box } from "@mui/material";
 
 interface MenuScreenProps {
     stage: () => Stage;
@@ -109,12 +110,11 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
 
     return (
         <BlurredBackground
-            imageUrl="https://i.imgur.com/9hF0qda.gif" //https://media.charhub.io/41b7b65d-839b-4d31-8c11-64ee50e817df/0fc1e223-ad07-41c4-bdae-c9545d5c5e34.png"
-            overlay="linear-gradient(45deg, rgba(0,17,34,0.3) 0%, rgba(0,34,68,0.3) 100%)"
+            imageUrl="https://i.imgur.com/9hF0qda.gif"
+            overlay="linear-gradient(135deg, rgba(26, 10, 46, 0.7) 0%, rgba(36, 7, 65, 0.8) 100%)"
         >
-            <div 
-                className="menu-screen" 
-                style={{ 
+            <Box 
+                sx={{
                     display: 'flex', 
                     flexDirection: 'column',
                     alignItems: 'center',
@@ -123,94 +123,97 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     width: '100vw'
                 }}
             >
-            {/* Background grid effect */}
-            <GridOverlay />
+                {/* Background grid effect */}
+                <GridOverlay />
 
-            {/* Main menu container */}
-            <motion.div
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-                className="glass-panel-bright"
-                style={{
-                    padding: 'clamp(20px, 5vh, 40px) clamp(20px, 5vw, 40px)',
-                    minWidth: '300px',
-                    maxWidth: '90vw',
-                    maxHeight: '90vh',
-                    overflow: 'auto',
-                    boxSizing: 'border-box',
-                }}
-            >
-                {/* Title */}
+                {/* Main menu container */}
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
-                >
-                    <Title variant="glow" style={{ textAlign: 'center', marginBottom: 'clamp(20px, 5vh, 40px)', fontSize: 'clamp(18px, 5vw, 28px)' }}>
-                        Post-Apocalypse Rehabilitation Center
-                    </Title>
-                </motion.div>
-
-                {/* Menu buttons */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(10px, 2vh, 15px)' }}>
-                    {menuButtons.map((button, index) => (
-                        <motion.div
-                            key={button.key}
-                            initial={{ opacity: 0, x: -30 }}
-                            animate={{ 
-                                opacity: 1, 
-                                x: hoveredButton === button.key && button.enabled ? 10 : 0
-                            }}
-                            transition={{ 
-                                opacity: { delay: 0.4 + (index * 0.1), duration: 0.4, ease: 'easeOut' },
-                                x: { duration: 0.2, ease: 'easeOut' }
-                            }}
-                            onMouseEnter={() => {
-                                setHoveredButton(button.enabled ? button.key : null);
-                                setTooltip(button.tooltip, button.icon);
-                            }}
-                            onMouseLeave={() => {
-                                setHoveredButton(null);
-                                clearTooltip();
-                            }}
-                        >
-                            <Button
-                                variant="menu"
-                                whileTap={{ scale: button.enabled ? 0.95 : 1 }}
-                                onClick={button.enabled ? button.onClick : undefined}
-                                disabled={!button.enabled}
-                                style={{
-                                    width: '100%',
-                                    fontSize: 'clamp(12px, 2.5vw, 16px)',
-                                    padding: 'clamp(8px, 1.5vh, 12px) clamp(16px, 3vw, 24px)',
-                                    background: button.enabled && hoveredButton === button.key 
-                                        ? 'rgba(0, 255, 136, 0.2)' 
-                                        : button.enabled ? 'transparent' : 'rgba(0, 20, 40, 0.5)'
-                                }}
-                            >
-                                {button.label}
-                            </Button>
-                        </motion.div>
-                    ))}
-                </div>
-
-                {/* Subtitle/version info */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8, duration: 0.5 }}
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    className="glass-panel-bright"
                     style={{
-                        textAlign: 'center',
-                        marginTop: 'clamp(20px, 4vh, 30px)',
-                        color: 'rgba(0, 255, 136, 0.6)',
-                        fontSize: 'clamp(10px, 1.5vw, 12px)',
+                        padding: 'clamp(20px, 5vh, 40px) clamp(20px, 5vw, 40px)',
+                        minWidth: '300px',
+                        maxWidth: '90vw',
+                        maxHeight: '90vh',
+                        overflow: 'auto',
+                        boxSizing: 'border-box',
                     }}
                 >
-                    {'v2026.02.09 - Initial Release.'}
+                    {/* Title */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                    >
+                        <Title 
+                            variant="glow" 
+                            style={{ 
+                                textAlign: 'center', 
+                                marginBottom: 'clamp(20px, 5vh, 40px)', 
+                                fontSize: 'clamp(18px, 5vw, 32px)' 
+                            }}
+                        >
+                            SoulMatcher
+                        </Title>
+                    </motion.div>
+
+                    {/* Menu buttons */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(10px, 2vh, 15px)' }}>
+                        {menuButtons.map((button, index) => (
+                            <motion.div
+                                key={button.key}
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ 
+                                    opacity: 1, 
+                                    x: hoveredButton === button.key && button.enabled ? 10 : 0
+                                }}
+                                transition={{ 
+                                    opacity: { delay: 0.4 + (index * 0.1), duration: 0.4, ease: 'easeOut' },
+                                    x: { duration: 0.2, ease: 'easeOut' }
+                                }}
+                                onMouseEnter={() => {
+                                    setHoveredButton(button.enabled ? button.key : null);
+                                    setTooltip(button.tooltip, button.icon);
+                                }}
+                                onMouseLeave={() => {
+                                    setHoveredButton(null);
+                                    clearTooltip();
+                                }}
+                            >
+                                <Button
+                                    variant="menu"
+                                    onClick={button.enabled ? button.onClick : undefined}
+                                    disabled={!button.enabled}
+                                    style={{
+                                        width: '100%',
+                                        fontSize: 'clamp(12px, 2.5vw, 16px)',
+                                        padding: 'clamp(8px, 1.5vh, 12px) clamp(16px, 3vw, 24px)',
+                                    }}
+                                >
+                                    {button.label}
+                                </Button>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Subtitle/version info */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8, duration: 0.5 }}
+                        style={{
+                            textAlign: 'center',
+                            marginTop: 'clamp(20px, 4vh, 30px)',
+                            color: 'rgba(255, 215, 0, 0.6)',
+                            fontSize: 'clamp(10px, 1.5vw, 12px)',
+                        }}
+                    >
+                        {'v2026.02.09 - A Retro Dating Gameshow Experience'}
+                    </motion.div>
                 </motion.div>
-            </motion.div>
-            </div>
+            </Box>
 
             {/* Settings Modal */}
             {showSettings && (

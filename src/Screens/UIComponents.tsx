@@ -1,19 +1,24 @@
 /**
  * Shared UI Components
- * Reusable styled components based on the SkitScreen blue theme
+ * Reusable components for the SoulMatcher retro gameshow theme
+ * Uses Material UI components and custom styling
  */
 
 import React, { FC, ReactNode } from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 import { HourglassTop, HourglassBottom } from '@mui/icons-material';
+import { Box, Paper, Button as MuiButton, TextField, Chip as MuiChip, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 /* ===============================================
-   PANEL COMPONENTS
+   PANEL COMPONENTS (Using MUI Paper with custom styling)
    =============================================== */
 
-interface GlassPanelProps extends HTMLMotionProps<"div"> {
+interface GlassPanelProps {
 	variant?: 'default' | 'bright';
 	children: ReactNode;
+	className?: string;
+	style?: React.CSSProperties;
 }
 
 export const GlassPanel: FC<GlassPanelProps> = ({ 
@@ -21,75 +26,54 @@ export const GlassPanel: FC<GlassPanelProps> = ({
 	children, 
 	className = '',
 	style,
-	...props 
 }) => {
-	const variantClass = variant === 'bright' ? 'glass-panel-bright' : 'glass-panel';
-	
 	return (
-		<motion.div 
-			className={`${variantClass} ${className}`}
-			style={{
+		<Box 
+			className={variant === 'bright' ? 'glass-panel-bright' : 'glass-panel'}
+			sx={{
 				padding: '24px',
 				...style
 			}}
-			{...props}
 		>
 			{children}
-		</motion.div>
-	);
-};
-
-interface GlowingCardProps extends HTMLMotionProps<"div"> {
-	children: ReactNode;
-}
-
-export const GlowingCard: FC<GlowingCardProps> = ({ 
-	children, 
-	className = '',
-	style,
-	...props 
-}) => {
-	return (
-		<motion.div 
-			className={`card-glowing ${className}`}
-			style={{
-				padding: '20px',
-				...style
-			}}
-			initial={{ opacity: 0, scale: 0.9 }}
-			animate={{ opacity: 1, scale: 1 }}
-			transition={{ duration: 0.5, ease: "easeOutBack" }}
-			{...props}
-		>
-			{children}
-		</motion.div>
+		</Box>
 	);
 };
 
 /* ===============================================
-   BUTTON COMPONENTS
+   BUTTON COMPONENTS (Wrapping MUI Button)
    =============================================== */
 
-interface ButtonProps extends HTMLMotionProps<"button"> {
+interface ButtonProps {
 	variant?: 'primary' | 'secondary' | 'menu';
 	children: ReactNode;
 	disabled?: boolean;
+	onClick?: () => void;
+	style?: React.CSSProperties;
+	className?: string;
+	onMouseEnter?: () => void;
+	onMouseLeave?: () => void;
 }
 
 export const Button: FC<ButtonProps> = ({ 
 	variant = 'primary', 
 	children, 
 	disabled = false,
+	onClick,
 	className = '',
 	style,
-	...props 
+	onMouseEnter,
+	onMouseLeave,
 }) => {
-	const variantClass = `btn-${variant}`;
+	const buttonClass = `btn-${variant}`;
 	
 	return (
 		<motion.button
-			className={`${variantClass} ${className}`}
+			className={`${buttonClass} ${className}`}
 			disabled={disabled}
+			onClick={onClick}
+			onMouseEnter={onMouseEnter}
+			onMouseLeave={onMouseLeave}
 			whileHover={!disabled ? { scale: variant === 'menu' ? 1 : 1.03 } : {}}
 			whileTap={!disabled ? { scale: 0.98 } : {}}
 			style={{
@@ -97,7 +81,6 @@ export const Button: FC<ButtonProps> = ({
 				alignSelf: 'center',
 				...style
 			}}
-			{...props}
 		>
 			{children}
 		</motion.button>
@@ -124,7 +107,7 @@ export const GridOverlay: FC<GridOverlayProps> = ({ size = 60 }) => {
 };
 
 /* ===============================================
-   PROGRESS INDICATORS
+   PROGRESS INDICATORS (Custom for gameshow theme)
    =============================================== */
 
 interface TurnIndicatorProps {
@@ -134,10 +117,9 @@ interface TurnIndicatorProps {
 
 export const TurnIndicator: FC<TurnIndicatorProps> = ({ currentTurn, totalTurns }) => {
 	return (
-		<div className="turn-indicator">
+		<Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
 			{Array.from({ length: totalTurns }).map((_, index) => {
 				const isSpent = index < currentTurn;
-				// Strangely, HourglassTop looks like the sand is in the bottom and HourglassBottom looks like the sand is in the top (if the sand is the negative space)
 				const HourglassIcon = isSpent ? HourglassTop : HourglassBottom;
 				
 				return (
@@ -154,28 +136,23 @@ export const TurnIndicator: FC<TurnIndicatorProps> = ({ currentTurn, totalTurns 
 							scale: 1.2,
 							transition: { duration: 0.2 }
 						}}
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-						}}
 					>
 						<HourglassIcon
-							style={{
-								color: isSpent ? 'rgba(0, 255, 136, 0.4)' : '#00ff88',
-								filter: isSpent ? 'none' : 'drop-shadow(0 0 8px rgba(0, 255, 136, 0.6))',
+							sx={{
+								color: isSpent ? 'rgba(255, 215, 0, 0.4)' : '#FFD700',
+								filter: isSpent ? 'none' : 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.6))',
 								fontSize: '28px',
 							}}
 						/>
 					</motion.div>
 				);
 			})}
-		</div>
+		</Box>
 	);
 };
 
 /* ===============================================
-   TEXT COMPONENTS
+   TEXT COMPONENTS (Using MUI Typography)
    =============================================== */
 
 interface TitleProps {
@@ -191,21 +168,36 @@ export const Title: FC<TitleProps> = ({
 	style,
 	className = ''
 }) => {
-	const variantClass = variant === 'primary' ? 'title-primary' : 'title-glow';
+	const textClass = variant === 'primary' ? 'text-glow-primary' : 'text-gradient';
 	
 	return (
-		<h1 className={`${variantClass} ${className}`} style={style}>
+		<Typography 
+			variant="h1" 
+			className={`${textClass} ${className}`} 
+			sx={{ 
+				fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+				...style 
+			}}
+		>
 			{children}
-		</h1>
+		</Typography>
 	);
 };
 
 /* ===============================================
-   INPUT COMPONENTS
+   INPUT COMPONENTS (Using MUI TextField)
    =============================================== */
 
-interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TextInputProps {
 	fullWidth?: boolean;
+	value?: string;
+	onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+	onFocus?: () => void;
+	onBlur?: () => void;
+	placeholder?: string;
+	id?: string;
+	style?: React.CSSProperties;
+	className?: string;
 }
 
 export const TextInput: FC<TextInputProps> = ({ 
@@ -216,11 +208,9 @@ export const TextInput: FC<TextInputProps> = ({
 }) => {
 	return (
 		<input
-			className={`text-input-primary ${className}`}
+			className={`input-base ${className}`}
 			style={{
 				width: fullWidth ? '100%' : 'auto',
-				padding: '12px',
-				fontSize: '14px',
 				...style
 			}}
 			{...props}
@@ -229,7 +219,7 @@ export const TextInput: FC<TextInputProps> = ({
 };
 
 /* ===============================================
-   CHIP/BADGE COMPONENTS
+   CHIP/BADGE COMPONENTS (Using MUI Chip)
    =============================================== */
 
 interface ChipProps {
@@ -244,9 +234,11 @@ export const Chip: FC<ChipProps> = ({
 	className = ''
 }) => {
 	return (
-		<span className={`chip-info ${className}`} style={style}>
-			{children}
-		</span>
+		<MuiChip 
+			label={children}
+			className={className}
+			sx={{ ...style }}
+		/>
 	);
 };
 
@@ -284,10 +276,21 @@ export const MenuItem: FC<MenuItemProps> = ({
 				onMouseEnter={() => setIsHovered(true)}
 				onMouseLeave={() => setIsHovered(false)}
 				whileTap={{ scale: 0.95 }}
-				className={`menu-item-header ${isExpanded ? 'expanded' : ''}`}
+				className="btn-menu"
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					background: isExpanded ? 'rgba(255, 20, 147, 0.15)' : 'transparent',
+				}}
 			>
 				<span>{title}</span>
-				<span className={`chevron ${isExpanded ? 'rotated' : ''}`}>▼</span>
+				<motion.span
+					animate={{ rotate: isExpanded ? 180 : 0 }}
+					transition={{ duration: 0.3 }}
+				>
+					▼
+				</motion.span>
 			</motion.button>
 			
 			<motion.div
@@ -303,10 +306,10 @@ export const MenuItem: FC<MenuItemProps> = ({
 				}}
 				style={{ 
 					overflow: 'hidden',
-					background: 'rgba(0, 20, 40, 0.7)',
-					border: isExpanded ? '2px solid rgba(0, 255, 136, 0.3)' : 'none',
+					background: 'rgba(36, 7, 65, 0.7)',
+					border: isExpanded ? '2px solid rgba(255, 20, 147, 0.3)' : 'none',
 					borderTop: 'none',
-					borderRadius: '0 0 5px 5px',
+					borderRadius: '0 0 8px 8px',
 				}}
 			>
 				<div style={{ padding: '15px' }}>

@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { Box, LinearProgress, Typography } from '@mui/material';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
+import { useTheme } from '@mui/material/styles';
 
 /*
  * Loading screen that displays while content is being loaded.
@@ -14,13 +15,14 @@ interface LoadingScreenProps {
 }
 
 const LOADING_PHASES = [
-    { message: "Loading contestants.", duration: 15000, progress: 50 },
-    { message: "Wrapping up", duration: Infinity, progress: 90 },
+    { message: "Finding compatible contestants...", duration: 15000, progress: 50 },
+    { message: "Preparing the studio...", duration: Infinity, progress: 90 },
 ];
 
 export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) => {
     const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
     const [progress, setProgress] = useState(0);
+    const theme = useTheme();
 
     // Poll for completion of loading
     useEffect(() => {
@@ -76,29 +78,47 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
                 justifyContent: 'center',
                 height: '100vh',
                 width: '100vw',
-                background: 'linear-gradient(45deg, #001122 0%, #002244 100%)',
+                background: 'linear-gradient(135deg, #1a0a2e 0%, #240741 100%)',
+                position: 'relative',
+                overflow: 'hidden',
             }}
         >
+            {/* Animated background effect */}
             <Box
+                className="grid-overlay"
                 sx={{
-                    width: '500px',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    opacity: 0.3,
+                }}
+            />
+
+            <Box
+                className="glass-panel-bright"
+                sx={{
+                    width: { xs: '90%', sm: '500px' },
                     maxWidth: '80%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
+                    padding: 4,
+                    zIndex: 1,
                 }}
             >
                 <Typography
-                    variant="h5"
+                    variant="h4"
+                    className="text-gradient"
                     sx={{
-                        color: '#00ff88',
                         fontWeight: 700,
-                        textShadow: '0 0 20px rgba(0, 255, 136, 0.5)',
                         marginBottom: 4,
                         textAlign: 'center',
+                        fontSize: { xs: '1.5rem', sm: '2rem' },
                     }}
                 >
-                    Initializing StationAide™
+                    SoulMatcher Loading
                 </Typography>
 
                 <Box sx={{ width: '100%', marginBottom: 2 }}>
@@ -106,14 +126,8 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
                         variant="determinate"
                         value={progress}
                         sx={{
-                            height: 10,
-                            borderRadius: 5,
-                            backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                            '& .MuiLinearProgress-bar': {
-                                backgroundColor: '#00ff88',
-                                boxShadow: '0 0 10px rgba(0, 255, 136, 0.5)',
-                                borderRadius: 5,
-                            },
+                            height: 12,
+                            borderRadius: 6,
                         }}
                     />
                 </Box>
@@ -121,10 +135,11 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
                 <Typography
                     variant="body1"
                     sx={{
-                        color: '#00cc66',
+                        color: theme.palette.secondary.main,
                         fontWeight: 500,
                         textAlign: 'center',
                         minHeight: '24px',
+                        textShadow: '0 0 10px rgba(255, 215, 0, 0.3)',
                     }}
                 >
                     {currentPhase.message}

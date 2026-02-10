@@ -16,6 +16,20 @@ interface StudioScreenProps {
 export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVerticalLayout }) => {
     // This is a physical description of the studio space for SoulMatcher, a dating gameshow on which the player is a contestant.
     const studioDescription = "The studio is a vibrant and dynamic space, designed to evoke the excitement and glamour of a high-stakes dating gameshow. The stage is set with bright, colorful lights that create an energetic atmosphere, while large LED screens display dynamic backgrounds that change with each skit. The audience area is filled with enthusiastic spectators, their cheers and reactions adding to the lively ambiance. The contestant's podium is sleek and modern, equipped with interactive elements that allow the player to make choices that influence the flow of the game. Overall, the studio is a visually stimulating environment that immerses the player in the thrilling world of SoulMatcher.";
+    
+    // Returns the last emotion for the given actor in the skit up to the current index, or neutral if none found.
+    const determineEmotion = (actorId: string, skit: Skit, index: number): Emotion => {
+        let emotion = Emotion.neutral;
+        for (let i = index; i >= 0; i--) {
+            const line = skit.script[i];
+            if (line.actorEmotions && line.actorEmotions[actorId]) {
+                emotion = line.actorEmotions[actorId];
+                break;
+            }
+        }
+        return emotion;
+    }
+    
     let skit = stage().getCurrentSkit() || {} as Skit;
 
     // If no skit; it's time for an intro:
@@ -38,9 +52,9 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             locationDescription: studioDescription,
             locationImageUrl: 'https://via.placeholder.com/640x480/4a90e2/666666?text=Studio',
         }
+        stage().saveData.skits.push(skit);
+        console.log("Initialized intro skit for StudioScreen.");
     }
-
-
 
     return (<div>
         {(skit && skit.script) ? <NovelVisualizer
@@ -50,7 +64,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             actors={stage().saveData.actors}
             getPresentActors={(skit: Skit, index: number) => skit.presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
             resolveSpeaker={(skit: Skit, index: number) => {console.log('Resolving speaker at index', index); return stage().saveData.actors[skit.script?.[index]?.speakerId || ''] || null;}}
-            getActorImageUrl={(actor: Actor, skit: Skit, index: number) => {console.log(`Getting actor image for ${actor.name}.`); return actor.emotionPack['neutral'];}}
+            getActorImageUrl={(actor: Actor, skit: Skit, index: number) => {console.log(`Getting actor image for ${actor.name}.`); return actor.emotionPack[determineEmotion(actor.id, skit, index)];}}
         /> : <></>}
     </div>
     );

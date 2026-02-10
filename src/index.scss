@@ -20,13 +20,6 @@
   --color-text-secondary: #FFD700;
 }
 
-// Ensure that everything is transparent,
-// so that the chat page can be seen through the stage
-* {
-  background-color: transparent;
-  overflow: hidden;
-}
-
 html, body, #root {
   margin: 0;
   padding: 0;

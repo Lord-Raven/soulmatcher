@@ -43,14 +43,14 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
 
 
     return (<div>
-        {skit ? <NovelVisualizer
+        {(skit && skit.script) ? <NovelVisualizer
             script={skit}
             backgroundImageUrl={skit.locationImageUrl || ''}
             isVerticalLayout={isVerticalLayout}
             actors={stage().saveData.actors}
-            getPresentActors={(script: Skit, index: number) => skit.presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
-            resolveSpeaker={(script: Skit, index: number) => {console.log('Resolving speaker at index', index); return stage().saveData.actors[script.script[index]?.speakerId || ''] || null;}}
-            getActorImageUrl={(actor: Actor, script: Skit, index: number) => {console.log(`Getting actor image for ${actor.name}.`); return actor.emotionPack['neutral'];}}
+            getPresentActors={(skit: Skit, index: number) => skit.presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
+            resolveSpeaker={(skit: Skit, index: number) => {console.log('Resolving speaker at index', index); return stage().saveData.actors[skit.script?.[index]?.speakerId || ''] || null;}}
+            getActorImageUrl={(actor: Actor, skit: Skit, index: number) => {console.log(`Getting actor image for ${actor.name}.`); return actor.emotionPack['neutral'];}}
         /> : <></>}
     </div>
     );

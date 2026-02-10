@@ -109,10 +109,11 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                             justifyContent: 'center',
                             gap: '12px',
                             padding: '16px 24px',
-                            background: 'linear-gradient(135deg, rgba(0, 30, 60, 0.95) 0%, rgba(0, 20, 40, 0.95) 100%)',
-                            border: '2px solid #00ff88',
+                            background: 'linear-gradient(135deg, rgba(36, 7, 65, 0.95) 0%, rgba(26, 10, 46, 0.95) 100%)',
+                            border: '2px solid',
+                            borderImage: 'linear-gradient(135deg, #FF1493, #FFD700) 1',
                             borderRadius: '12px',
-                            boxShadow: '0 8px 32px rgba(0, 255, 136, 0.3), 0 0 20px rgba(0, 255, 136, 0.2)',
+                            boxShadow: '0 8px 32px rgba(255, 20, 147, 0.3), 0 0 20px rgba(255, 215, 0, 0.2)',
                             backdropFilter: 'blur(10px)',
                             maxWidth: '50vw',
                             minWidth: 'fit-content',
@@ -122,9 +123,9 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                         {Icon && (
                             <Icon
                                 sx={{
-                                    color: '#00ff88',
+                                    color: '#FFD700',
                                     fontSize: '28px',
-                                    filter: 'drop-shadow(0 0 8px rgba(0, 255, 136, 0.5))',
+                                    filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.5))',
                                     flexShrink: 0,
                                 }}
                             />
@@ -132,10 +133,10 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                         <Typography
                             variant="body1"
                             sx={{
-                                color: '#00ff88',
+                                color: '#FFD700',
                                 fontSize: '16px',
                                 fontWeight: 600,
-                                textShadow: '0 0 10px rgba(0, 255, 136, 0.3)',
+                                textShadow: '0 0 10px rgba(255, 215, 0, 0.4)',
                                 textAlign: 'center',
                             }}
                         >
@@ -149,16 +150,16 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                                     gap: '4px',
                                     marginLeft: '8px',
                                     paddingLeft: '12px',
-                                    borderLeft: '2px solid rgba(0, 255, 136, 0.3)',
+                                    borderLeft: '2px solid rgba(255, 20, 147, 0.4)',
                                 }}
                             >
                                 {Array.from({ length: actionCost }).map((_, i) => (
                                     <HourglassEmpty
                                         key={i}
                                         sx={{
-                                            color: '#00ff88',
+                                            color: '#FF1493',
                                             fontSize: '20px',
-                                            filter: 'drop-shadow(0 0 6px rgba(0, 255, 136, 0.4))',
+                                            filter: 'drop-shadow(0 0 6px rgba(255, 20, 147, 0.5))',
                                         }}
                                     />
                                 ))}

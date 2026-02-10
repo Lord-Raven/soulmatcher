@@ -23,8 +23,8 @@
 // Ensure that everything is transparent,
 // so that the chat page can be seen through the stage
 * {
-  background-color: transparent !important;
-  overflow: hidden !important;
+  background-color: transparent;
+  overflow: hidden;
 }
 
 html, body, #root {

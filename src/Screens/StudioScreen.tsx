@@ -33,7 +33,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     let skit = stage().getCurrentSkit() || {} as Skit;
 
     // If no skit; it's time for an intro:
-    if (!skit) {
+    if (!skit.skitType) {
         skit = {
             skitType: SkitType.INTRO,
             script: [{

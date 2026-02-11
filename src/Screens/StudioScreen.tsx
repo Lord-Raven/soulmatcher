@@ -67,7 +67,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             actors={stage().saveData.actors}
             getPresentActors={(skit: Skit, index: number) => skit.presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
             resolveSpeaker={(skit: Skit, index: number) => {console.log('Resolving speaker at index', index); return stage().saveData.actors[skit.script?.[index]?.speakerId || ''] || null;}}
-            getActorImageUrl={(actor: Actor, skit: Skit, index: number) => {console.log(`Getting actor image for ${actor.name}.`); return actor.emotionPack[determineEmotion(actor.id, skit, index)];}}
+            getActorImageUrl={(actor: Actor, skit: Skit, index: number) => {return actor.emotionPack[determineEmotion(actor.id, skit, index)];}}
         /> : <></>}
     </div>
     );

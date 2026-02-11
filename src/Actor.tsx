@@ -219,7 +219,8 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         style: parsedData['style'] || '',
         voiceId: data.voiceId || parsedData['voice'] || '',
         themeColor: themeColor,
-        font: parsedData['font'] || 'Arial, sans-serif'
+        font: parsedData['font'] || 'Arial, sans-serif',
+        
     });
     console.log(`Loaded new actor: ${newActor.name} (ID: ${newActor.id})`);
     console.log(newActor);

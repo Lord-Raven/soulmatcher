@@ -140,6 +140,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
                     reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
                 }
+                reserveActors.forEach(actor => this.saveData.actors[actor.id] = actor);
                 console.log('Contestant loading complete!');
             })().finally(() => {
                 // Remove this promise from the array when complete

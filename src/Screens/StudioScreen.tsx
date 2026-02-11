@@ -54,6 +54,9 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         }
         stage().saveData.skits.push(skit);
         console.log("Initialized intro skit for StudioScreen.");
+        console.log(skit);
+    } else {
+        console.log("Current skit for StudioScreen:", skit);
     }
 
     return (<div>

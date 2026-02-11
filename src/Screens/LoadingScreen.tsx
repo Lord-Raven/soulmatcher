@@ -31,6 +31,7 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
             
             // If all load promises have completed (array is empty), transition to studio screen
             if (!loadPromises || loadPromises.length === 0) {
+                console.log('Done loading');
                 setScreenType(ScreenType.STUDIO);
             }   
         }, 100);

@@ -118,7 +118,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     // This is called when the user starts a new game; some props supplied by initial settings screen.
     async startNewGame(playerDetails: Partial<Actor>): Promise<void> {
-        if (this.saveData && Object.keys(this.saveData.actors).length == 0) {
+        if (this.saveData && Object.keys(this.saveData.actors).length <= 2) {
             // No save data, initialize everything.
             // Player actor:
             const playerActor = new Actor({

@@ -87,11 +87,13 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         stage().saveData.language = settings.language;
         
         if (isNewGame) {
+            console.log('Starting new game with settings');
             stage().startNewGame({
                 name: settings.playerName,
                 description: settings.playerDescription,
             });
         } else {
+            console.log('Updating settings');
             const player = stage().getPlayerActor();
             player.name = settings.playerName;
             player.description = settings.playerDescription;

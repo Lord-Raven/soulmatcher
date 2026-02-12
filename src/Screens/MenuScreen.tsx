@@ -22,7 +22,6 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
     const [hoveredButton, setHoveredButton] = useState<string | null>(null);
     const [showSettings, setShowSettings] = useState(false);
     const [isNewGameSettings, setIsNewGameSettings] = useState(false);
-    const [showContentManagement, setShowContentManagement] = useState(false);
     const { setTooltip, clearTooltip } = useTooltip();
     const disableAllButtons = false; // When true, disable all options on this menu, including escape to continue; this is being used to effectively shut down the game at the moment.
     
@@ -38,9 +37,6 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 if (showSettings) {
                     console.log('close settings');
                     handleSettingsCancel();
-                } else if (showContentManagement) {
-                    console.log('close content management');
-                    setShowContentManagement(false);
                 } else if (saveExists() && !showSettings) {
                     console.log('continue');
                     handleContinue();

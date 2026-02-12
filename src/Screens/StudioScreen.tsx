@@ -215,7 +215,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     ],
                     presentActors: [hostActor.id, playerActor.id],
                     locationDescription: studioDescription,
-                    locationImageUrl: ''
+                    locationImageUrl: '',
+
                 });
 
             default:
@@ -258,7 +259,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         let emotion = Emotion.neutral;
         for (let i = index; i >= 0; i--) {
             const line = skit.script[i];
-            console.log('Checking line for emotion:', line);
             if (line && line.actorEmotions && line.actorEmotions[actorId]) {
                 emotion = line.actorEmotions[actorId];
                 break;

@@ -44,13 +44,54 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
     const dataName = item.node.definition.name.replaceAll('{{char}}', item.node.definition.name).replaceAll('{{user}}', 'Individual X');
     console.log(item);
 
+    const emotionPacks: EmotionPack[] = [item.node.definition.extensions?.chub?.expressions ?? null, ...Object.values(item.node.definition.extensions?.chub?.alt_expressions ?? {})]
+        .filter(pack => pack !== null && Object.values(pack.expressions).some(imageUrl => !(imageUrl as String).includes("emotions/1/")) && pack.expressions['neutral'] && !pack.expressions['neutral'].includes("emotions/1/"))
+        .filter(async pack => {
+            // Fetch an image from each emotion pack and inspect the top left pixel to see if it's transparent. If not, discard this emotion pack
+            // Fetch the neutral image from the pack
+            try {
+                const imgResponse = await fetch(pack.expressions['neutral']);
+                const imgBlob = await imgResponse.blob();
+                const imgBitmap = await createImageBitmap(imgBlob);
+                const canvas = document.createElement('canvas');
+                canvas.width = imgBitmap.width;
+                canvas.height = imgBitmap.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return false;
+                ctx.drawImage(imgBitmap, 0, 0);
+                const pixelData = ctx.getImageData(0, 0, 1, 1).data;
+                // Check if the pixel is transparent (alpha value of 0)
+                const isTransparent = pixelData[3] === 0;
+                if (!isTransparent) {
+                    console.log(`Discarding emotion pack due to non-transparent pixels: ${pack.expressions['neutral']}`);
+                }
+                return isTransparent;
+            } catch (error) {
+                // Failed to fetch avatar image.
+                console.log(`Discarding actor due to failed avatar image fetch: ${data.name}`);
+                return false;
+            }
+        })
+    
+
+    if (emotionPacks.length === 0) {
+        console.log(`Discarding actor due to missing or unsupported emotion pack: ${dataName}`);
+        return null;
+    }
+
     const data = {
         name: dataName,
         fullPath: item.node.fullPath,
         personality: item.node.definition.personality.replaceAll('{{char}}', dataName).replaceAll('{{user}}', 'Individual X'),
         avatar: item.node.max_res_url,
         // If the voice ID is not in the VOICE_MAP, it is a custom voice and should be preserved
-        voiceId: !VOICE_MAP[item.node.definition.voice_id] ? item.node.definition.voice_id : ''
+        voiceId: !VOICE_MAP[item.node.definition.voice_id] ? item.node.definition.voice_id : '',
+        // Use the first emotionPack, but modify any entries that include "emotions/1/" to be undefined (they will default to neutral in-game).
+        emotionPack: Object.fromEntries(
+            Object.entries(emotionPacks[0].expressions).map(([key, value]) =>
+                key.includes("emotions/1/") ? [key, undefined] : [key, value]
+            )
+        ),
     };
     return loadReserveActor(data, stage);
 }
@@ -118,26 +159,6 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         return null;
     } else if (/[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/.test(`${data.name}${data.personality}`)) {
         console.log(`Immediately discarding actor due to non-english characters: ${data.name}`);
-        return null;
-    }
-
-    // Fetch the avatar image to inspect properties; if it's too small, discard this actor.
-    try {
-        if (data.avatar) {
-            const imgResponse = await fetch(data.avatar);
-            const imgBlob = await imgResponse.blob();
-            const imgBitmap = await createImageBitmap(imgBlob);
-            if (imgBitmap.width < 400 || imgBitmap.height < 400) {
-                console.log(`Discarding actor due to small avatar image: ${data.name} (${imgBitmap.width}x${imgBitmap.height})`);
-                return null;
-            } else if (imgBitmap.width / imgBitmap.height < 0.3 || imgBitmap.width / imgBitmap.height > 1.2) {
-                console.log(`Discarding actor due to extreme avatar aspect ratio: ${data.name} (${imgBitmap.width}x${imgBitmap.height})`);
-                return null;
-            }
-        }
-    } catch (error) {
-        // Failed to fetch avatar image.
-        console.log(`Discarding actor due to failed avatar image fetch: ${data.name}`);
         return null;
     }
 
@@ -220,7 +241,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         voiceId: data.voiceId || parsedData['voice'] || '',
         themeColor: themeColor,
         font: parsedData['font'] || 'Arial, sans-serif',
-        
+        emotionPack: data.emotionPack || {},
     });
     console.log(`Loaded new actor: ${newActor.name} (ID: ${newActor.id})`);
     console.log(newActor);

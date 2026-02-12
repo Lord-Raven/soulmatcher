@@ -118,70 +118,68 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
     // This is called when the user starts a new game; some props supplied by initial settings screen.
     async startNewGame(playerDetails: Partial<Actor>): Promise<void> {
-        if (this.saveData && Object.keys(this.saveData.actors).length <= 2) {
-            // No save data, initialize everything.
-            // Player actor:
-            const playerActor = new Actor({
-                ...playerDetails,
-                type: 'PLAYER',
-                name: playerDetails.name || 'Player',
-            });
-            this.saveData.actors[playerActor.id] = playerActor;
+        // No save data, initialize everything.
+        // Player actor:
+        const playerActor = new Actor({
+            ...playerDetails,
+            type: 'PLAYER',
+            name: playerDetails.name || 'Player',
+        });
+        this.saveData.actors[playerActor.id] = playerActor;
 
-            // Host actor:
-            const hostActor = new Actor({
-                type: 'HOST',
-                name: this.primaryCharacter.name || 'Host',
-                description: this.primaryCharacter.description || '',
-                profile: this.primaryCharacter.personality || '',
-                themeColor: '#FF69B4',
-                themeFontFamily: 'Arial, sans-serif',
-            });
+        // Host actor:
+        const hostActor = new Actor({
+            type: 'HOST',
+            name: this.primaryCharacter.name || 'Host',
+            description: this.primaryCharacter.description || '',
+            profile: this.primaryCharacter.personality || '',
+            themeColor: '#FF69B4',
+            themeFontFamily: 'Arial, sans-serif',
+        });
 
-            this.saveData.actors[hostActor.id] = hostActor;
+        this.saveData.actors[hostActor.id] = hostActor;
 
-            // Contestants - load asynchronously:
-            console.log('Starting contestant loading...');
-            // Clear any existing load promises
-            this.loadPromises = [];
-            
-            // Create the asynchronous contestant loading promise
-            const contestantLoadPromise = (async () => {
-                let reserveActors: Actor[] = [];
-                while (reserveActors.length < this.CONTESTANT_COUNT) {
-                    // Populate reserveActors; this is loaded with data from a service, calling the characterServiceQuery URL:
-                    const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
-                    const response = await fetch(this.characterSearchQuery
-                        .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
-                        .replace('{{EXCLUSIONS}}', exclusions ? exclusions + '%2C' : '')
-                        .replace('{{SEARCH_TAGS}}', /*this.actorTags.concat(this.actorTags)*/[].join('%2C')));
-                    const searchResults = await response.json();
-                    console.log(searchResults);
-                    // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:
-                    const basicCharacterData = searchResults.data?.nodes.filter((item: string, index: number) => index < this.CONTESTANT_COUNT - reserveActors.length).map((item: any) => item.fullPath) || [];
-                    this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
-                    console.log(basicCharacterData);
+        // Contestants - load asynchronously:
+        console.log('Starting contestant loading...');
+        // Clear any existing load promises
+        this.loadPromises = [];
+        
+        // Create the asynchronous contestant loading promise
+        const contestantLoadPromise = (async () => {
+            let reserveActors: Actor[] = [];
+            while (reserveActors.length < this.CONTESTANT_COUNT) {
+                // Populate reserveActors; this is loaded with data from a service, calling the characterServiceQuery URL:
+                const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
+                const response = await fetch(this.characterSearchQuery
+                    .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
+                    .replace('{{EXCLUSIONS}}', exclusions ? exclusions + '%2C' : '')
+                    .replace('{{SEARCH_TAGS}}', /*this.actorTags.concat(this.actorTags)*/[].join('%2C')));
+                const searchResults = await response.json();
+                console.log(searchResults);
+                // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:
+                const basicCharacterData = searchResults.data?.nodes.filter((item: string, index: number) => index < this.CONTESTANT_COUNT - reserveActors.length).map((item: any) => item.fullPath) || [];
+                this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
+                console.log(basicCharacterData);
 
-                    const newActors: Actor[] = await Promise.all(basicCharacterData.map(async (fullPath: string) => {
-                        return loadReserveActorFromFullPath(fullPath, this);
-                    }));
+                const newActors: Actor[] = await Promise.all(basicCharacterData.map(async (fullPath: string) => {
+                    return loadReserveActorFromFullPath(fullPath, this);
+                }));
 
-                    reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
-                }
-                reserveActors.forEach(actor => this.saveData.actors[actor.id] = actor);
-                console.log('Contestant loading complete!');
-            })().finally(() => {
-                // Remove this promise from the array when complete
-                const index = this.loadPromises.indexOf(contestantLoadPromise);
-                if (index > -1) {
-                    this.loadPromises.splice(index, 1);
-                }
-            });
-            
-            // Add the promise to the array for tracking
-            this.loadPromises.push(contestantLoadPromise);
-            // Don't await - let it run in the background
-        }
+                reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
+            }
+            reserveActors.forEach(actor => this.saveData.actors[actor.id] = actor);
+            console.log('Contestant loading complete!');
+        })().finally(() => {
+            // Remove this promise from the array when complete
+            const index = this.loadPromises.indexOf(contestantLoadPromise);
+            if (index > -1) {
+                this.loadPromises.splice(index, 1);
+            }
+        });
+        
+        // Add the promise to the array for tracking
+        this.loadPromises.push(contestantLoadPromise);
+        // Don't await - let it run in the background
     }
 
     saveGame() {

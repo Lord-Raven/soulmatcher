@@ -9,17 +9,40 @@ type MessageStateType = any;
 type ConfigType = any;
 type InitStateType = any;
 
+export enum GamePhase {
+    GAME_INTRO = 'GAME_INTRO',                           // Introduction to the game
+    CONTESTANT_INTRO = 'CONTESTANT_INTRO',               // Introducing contestants one at a time
+    GROUP_INTERVIEW = 'GROUP_INTERVIEW',                 // Group contestant interview
+    FINALIST_SELECTION = 'FINALIST_SELECTION',           // Player chooses three finalists
+    FINALIST_ONE_ON_ONE = 'FINALIST_ONE_ON_ONE',         // One-on-one skits with finalists
+    FINAL_VOTING = 'FINAL_VOTING',                       // Player, host, and audience vote
+    GAME_COMPLETE = 'GAME_COMPLETE'                      // Game finished
+}
+
+export type GameProgressState = {
+    currentPhase: GamePhase;
+    contestantsIntroduced: string[];      // Array of Actor IDs that have been introduced
+    finalistIds: string[];                // Array of Actor IDs chosen as finalists
+    finalistsInterviewed: string[];       // Array of finalist Actor IDs that have had one-on-ones
+    playerChoice: string | null;          // Actor ID of player's final choice
+    hostChoice: string | null;            // Actor ID of host's choice
+    audienceChoice: string | null;        // Actor ID of audience's choice
+    winnerId: string | null;              // Actor ID of the winner
+}
+
+
+
 type ChatStateType = {
     actors: {[key: string]: Actor};
     skits: Skit[];
     disableTextToSpeech: boolean;
     language: string;
     bannedTags: string[];
+    gameProgress: GameProgressState;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
-    readonly MAX_FACTIONS = 5;
     readonly FETCH_AT_TIME = 10;
     readonly MAX_PAGES = 100;
     readonly bannedTagsDefault = [
@@ -63,6 +86,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
         if (chatState) {
             this.saveData = chatState;
+            // Ensure gameProgress exists for older saves
+            if (!this.saveData.gameProgress) {
+                this.saveData.gameProgress = this.createInitialGameProgress();
+            }
         } else {
             this.saveData = {
                 actors: {},
@@ -70,6 +97,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 disableTextToSpeech: false,
                 language: 'English',
                 bannedTags: [],
+                gameProgress: this.createInitialGameProgress(),
             };
         }
     }
@@ -177,6 +205,93 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             return this.saveData.skits[this.saveData.skits.length - 1];
         }
         return null;
+    }
+
+    createInitialGameProgress(): GameProgressState {
+        return {
+            currentPhase: GamePhase.GAME_INTRO,
+            contestantsIntroduced: [],
+            finalistIds: [],
+            finalistsInterviewed: [],
+            playerChoice: null,
+            hostChoice: null,
+            audienceChoice: null,
+            winnerId: null,
+        };
+    }
+
+    // Helper methods for game progression
+    getCurrentPhase(): GamePhase {
+        return this.saveData.gameProgress.currentPhase;
+    }
+
+    advancePhase(newPhase: GamePhase): void {
+        this.saveData.gameProgress.currentPhase = newPhase;
+        this.saveGame();
+    }
+
+    markContestantIntroduced(actorId: string): void {
+        if (!this.saveData.gameProgress.contestantsIntroduced.includes(actorId)) {
+            this.saveData.gameProgress.contestantsIntroduced.push(actorId);
+            this.saveGame();
+        }
+    }
+
+    setFinalists(actorIds: string[]): void {
+        this.saveData.gameProgress.finalistIds = actorIds;
+        this.saveGame();
+    }
+
+    markFinalistInterviewed(actorId: string): void {
+        if (!this.saveData.gameProgress.finalistsInterviewed.includes(actorId)) {
+            this.saveData.gameProgress.finalistsInterviewed.push(actorId);
+            this.saveGame();
+        }
+    }
+
+    setPlayerChoice(actorId: string): void {
+        this.saveData.gameProgress.playerChoice = actorId;
+        this.saveGame();
+    }
+
+    setHostChoice(actorId: string): void {
+        this.saveData.gameProgress.hostChoice = actorId;
+        this.saveGame();
+    }
+
+    setAudienceChoice(actorId: string): void {
+        this.saveData.gameProgress.audienceChoice = actorId;
+        this.saveGame();
+    }
+
+    setWinner(actorId: string): void {
+        this.saveData.gameProgress.winnerId = actorId;
+        this.saveGame();
+    }
+
+    // Check if all contestants have been introduced
+    allContestantsIntroduced(): boolean {
+        const contestants = this.getContestantActors();
+        return this.saveData.gameProgress.contestantsIntroduced.length >= contestants.length;
+    }
+
+    // Check if all finalists have had one-on-one interviews
+    allFinalistsInterviewed(): boolean {
+        return this.saveData.gameProgress.finalistsInterviewed.length >= this.saveData.gameProgress.finalistIds.length;
+    }
+
+    // Get the next contestant to introduce
+    getNextContestantToIntroduce(): Actor | null {
+        const contestants = this.getContestantActors();
+        return contestants.find(c => !this.saveData.gameProgress.contestantsIntroduced.includes(c.id)) || null;
+    }
+
+    // Get the next finalist to interview
+    getNextFinalistToInterview(): Actor | null {
+        const finalistId = this.saveData.gameProgress.finalistIds.find(
+            id => !this.saveData.gameProgress.finalistsInterviewed.includes(id)
+        );
+        return finalistId ? this.saveData.actors[finalistId] : null;
     }
 
     // Callback to show priority messages in the tooltip bar

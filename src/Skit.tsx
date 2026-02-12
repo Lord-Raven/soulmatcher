@@ -1,15 +1,15 @@
 import { Emotion } from "./Emotion";
 
 export enum SkitType {
-    INTRO = 'INTRO',
-    ROUND_ONE = 'ROUND_ONE',
-    ROUND_TWO = 'ROUND_TWO',
-    REVEAL = 'REVEAL',
-    OUTRO = 'OUTRO',
+    GAME_INTRO = 'GAME_INTRO',
+    CONTESTANT_INTRO = 'CONTESTANT_INTRO',
+    GROUP_INTERVIEW = 'GROUP_INTERVIEW',
+    FINALIST_ONE_ON_ONE = 'FINALIST_ONE_ON_ONE',
+    RESULTS = 'RESULTS',
 }
 
 export class Skit {
-    skitType: SkitType = SkitType.INTRO;
+    skitType: SkitType = SkitType.GAME_INTRO;
     script: ScriptEntry[] = [];
     presentActors: string[] = []; // List of Actor IDs present in this skit
     locationDescription: string = '';

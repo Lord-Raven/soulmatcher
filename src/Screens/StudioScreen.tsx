@@ -231,6 +231,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
 
     // Handler for when a skit completes
     const handleSkitComplete = () => {
+        console.log('Skit complete, determining next steps...');
         const currentPhase = stage().getCurrentPhase();
         
         // Phases that need external UI for player input
@@ -257,7 +258,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         let emotion = Emotion.neutral;
         for (let i = index; i >= 0; i--) {
             const line = skit.script[i];
-            if (line.actorEmotions && line.actorEmotions[actorId]) {
+            console.log('Checking line for emotion:', line);
+            if (line && line.actorEmotions && line.actorEmotions[actorId]) {
                 emotion = line.actorEmotions[actorId];
                 break;
             }

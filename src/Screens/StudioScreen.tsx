@@ -43,7 +43,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                             actorEmotions: { [hostActor.id]: Emotion.pride },
                         })
                     ],
-                    presentActors: [hostActor.id, playerActor.id],
+                    presentActors: [hostActor.id, ...stage().getContestantActors().map(c => c.id)],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
                 });

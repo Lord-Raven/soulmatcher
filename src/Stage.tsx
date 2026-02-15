@@ -169,6 +169,10 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 }));
 
                 reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
+                if (reserveActors.length < this.CONTESTANT_COUNT) {
+                    console.log(`Only found ${reserveActors.length} valid contestants so far; continuing search...`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
             }
             reserveActors.forEach(actor => this.saveData.actors[actor.id] = actor);
             console.log('Contestant loading complete!');

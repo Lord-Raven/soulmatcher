@@ -10,6 +10,45 @@ export enum SkitType {
     RESULTS = 'RESULTS',
 }
 
+function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string {
+    const player = stage.getPlayerActor();
+    const host = stage.getHostActor();
+    const save = stage.saveData;
+    
+    // Get the target contestant (present actor that isn't the player or host)
+    const presentActorIds = skit.presentActors;
+    const targetContestants = Object.values(save.actors).filter(a => 
+        presentActorIds.includes(a.id) && a.id !== player.id && a.id !== host.id
+    );
+    const targetContestant = targetContestants.length > 0 ? targetContestants[0] : null;
+
+    switch (skitType) {
+        case SkitType.GAME_INTRO:
+            return 'This is the opening scene of the dating gameshow. Cupid is introducing the format of the game, the stakes, and the player character to the audience and contestants. The tone should be exciting, theatrical, and set expectations for the matchmaking journey ahead.';
+        
+        case SkitType.CONTESTANT_INTRO:
+            if (targetContestant) {
+                return `A contestant, ${targetContestant.name}, is being introduced to the player and audience. ${targetContestant.name}'s profile shows they are: ${targetContestant.description}. This scene should showcase ${targetContestant.name}'s personality, charm, and what makes them a compelling potential match. There's an opportunity for initial sparks of connection or interesting dynamics to emerge.`;
+            }
+            return 'A contestant is being introduced to the player and audience. This scene should showcase the contestant\'s personality, charm, and what makes them a compelling potential match. There\'s an opportunity for initial sparks of connection or interesting dynamics to emerge.';
+        
+        case SkitType.GROUP_INTERVIEW:
+            return 'The player is interviewing multiple contestants together in a group setting. This scene involves dynamic interactions between the candidates, opportunities for them to compete or cooperate, and moments where the player can gauge compatibility with each one. Group chemistry and individual personalities come into play.';
+        
+        case SkitType.FINALIST_ONE_ON_ONE:
+            if (targetContestant) {
+                return `The player is in a private, intimate moment with ${targetContestant.name}, one of the finalists. ${targetContestant.name}'s profile shows: ${targetContestant.description}. This scene is more personal and romantic than previous interactions, allowing for deeper conversation, vulnerability, and genuine connection. This is a pivotal moment to explore whether ${targetContestant.name} could truly be ${player.name}'s soulmate.`;
+            }
+            return 'The player is in a private, intimate moment with one of the finalists. This scene is more personal and romantic than previous interactions, allowing for deeper conversation, vulnerability, and genuine connection. This is a pivotal moment to explore whether this could be a real match.';
+        
+        case SkitType.RESULTS:
+            return 'The game is reaching its climax. Voting results are being revealed, eliminations are happening, and tension builds as the player discovers who the audience, other contestants, and Cupid believe could be their perfect soulmate. The tone is dramatic and emotionally charged.';
+        
+        default:
+            return 'An event is unfolding in the gameshow.';
+    }
+}
+
 export class Skit {
     skitType: SkitType = SkitType.GAME_INTRO;
     script: ScriptEntry[] = [];
@@ -69,7 +108,7 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
         `\n\n${player.name}'s profile: ${player.description}` +
         `\n\nCupid's profile: ${host.description}` +
         
-        `\n\nScene Prompt:\n  [Need a prompt based on the current skit type]` +
+        `\n\nScene Prompt:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
         
         ((historyLength > 0 && pastSkits.length) ? 
                 // Include last few skit scripts for context and style reference

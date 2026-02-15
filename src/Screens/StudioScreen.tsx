@@ -231,7 +231,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     };
 
     // Handler for when a skit completes
-    const handleSubmitInput = async (input: string, skit: any, index: number) => {
+    const handleSubmitInput = async (input: string, skit: any, index: number, setIndex: (index: number) => void) => {
         if (input.trim() === '' && index < (skit as Skit).script.length - 1) {
             console.log('No input and more skit to display; no action needed.');
             return;
@@ -252,8 +252,9 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             }
             
             // Generate and add the next skit
-            const nextSkit = generateNextSkit();
+            const nextSkit = await generateNextSkit();
             stage().saveData.skits.push(nextSkit);
+            setIndex(index + 1); // Move to the player's input
             stage().saveGame();
             console.log(`Generated new skit for phase: ${stage().getCurrentPhase()}`);
 
@@ -276,6 +277,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 speechUrl: '',
                 actorEmotions: {},
             }));
+            setIndex(index + 1); // Move to the player's input
             const nextEntries = await generateSkitScript(skit as Skit, stage());
             (skit as Skit).script.push(...nextEntries.entries);
             stage().saveGame();
@@ -323,7 +325,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             getActorImageUrl={(actor, script, index: number) => {return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
             onSubmitInput={handleSubmitInput}
             enableAudio={!stage().saveData.disableTextToSpeech}
-            allowGhostSpeakers={true}
+            enableGhostSpeakers={true}
             enableTalkingAnimation={true}
         /> : <></>}
     </div>

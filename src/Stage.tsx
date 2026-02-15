@@ -172,6 +172,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 if (reserveActors.length < this.CONTESTANT_COUNT) {
                     console.log(`Only found ${reserveActors.length} valid contestants so far; continuing search...`);
                     await new Promise(resolve => setTimeout(resolve, 500));
+                } else {
+                    console.log(`Found ${reserveActors.length} valid contestants!`);
+                    console.log(reserveActors);
                 }
             }
             reserveActors.forEach(actor => this.saveData.actors[actor.id] = actor);

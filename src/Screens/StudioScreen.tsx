@@ -1,5 +1,5 @@
 import { Stage, GamePhase } from "../Stage";
-import { ScriptEntry, Skit, SkitType, generateSkitScript } from "../Skit";
+import { Skit, SkitType, generateSkitScript } from "../Skit";
 import { FC } from "react";
 import { ScreenType } from "./BaseScreen";
 import { Actor } from "../Actor";
@@ -29,21 +29,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 stage().advancePhase(GamePhase.CONTESTANT_INTRO);
                 return new Skit({
                     skitType: SkitType.GAME_INTRO,
-                    script: [
-                        new ScriptEntry({
-                            speakerId: '',
-                            message: "Welcome to SoulMatcher, the ultimate dating gameshow where your choices shape your romantic destiny—forever! Get ready to meet intriguing contestants, navigate unexpected twists, and find out if you have what it takes to win the heart of your perfect match. Let the games begin!",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.pride },
-                        }),
-                        new ScriptEntry({
-                            speakerId: '',
-                            message: "The curtain rises, revealing the dazzling lights and roaring audience. Your host, Cupid, flutters onto the stage with a flourish, captivating everyone's attention. He turns to you, his eyes twinkling with excitement as he prepares to recap the show's premise for his newest viewers.",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.joy },
-                        })
-                    ],
-                    presentActors: [hostActor.id, ...stage().getContestantActors().map(c => c.id)],
+                    script: [],
+                    presentActors: [hostActor.id],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
                 });
@@ -61,7 +48,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     return new Skit({
                         skitType: SkitType.CONTESTANT_INTRO,
                         script: [],
-                        presentActors: [hostActor.id, playerActor.id, nextContestant.id],
+                        presentActors: [nextContestant.id],
                         locationDescription: studioDescription,
                         locationImageUrl: ''
                     });
@@ -76,7 +63,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return new Skit({
                     skitType: SkitType.GROUP_INTERVIEW,
                     script: [],
-                    presentActors: [hostActor.id, playerActor.id, ...allContestants.map(c => c.id)],
+                    presentActors: [...allContestants.map(c => c.id)],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
                 });
@@ -87,7 +74,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return new Skit({
                     skitType: SkitType.GROUP_INTERVIEW,
                     script: [],
-                    presentActors: [hostActor.id, playerActor.id],
+                    presentActors: [hostActor.id],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
                 });
@@ -105,7 +92,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     return new Skit({
                         skitType: SkitType.FINALIST_ONE_ON_ONE,
                         script: [],
-                        presentActors: [playerActor.id, nextFinalist.id],
+                        presentActors: [nextFinalist.id],
                         locationDescription: "A cozy, intimate setting with soft lighting and comfortable seating, perfect for getting to know someone better.",
                         locationImageUrl: ''
                     });
@@ -120,7 +107,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return new Skit({
                     skitType: SkitType.RESULTS,
                     script: [],
-                    presentActors: [hostActor.id, playerActor.id, ...stage().saveData.gameProgress.finalistIds.map(id => id)],
+                    presentActors: [...stage().saveData.gameProgress.finalistIds.map(id => id)],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
                 });
@@ -129,7 +116,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return new Skit({
                     skitType: SkitType.RESULTS,
                     script: [],
-                    presentActors: [hostActor.id, playerActor.id],
+                    presentActors: [hostActor.id],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
                 });
@@ -200,14 +187,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     
     let skit = stage().getCurrentSkit();
 
-    // If no skit exists, generate the first one
-    if (!skit) {
-        skit = generateNextSkit();
-        stage().saveData.skits.push(skit);
-        stage().saveGame();
-        console.log("Initialized first skit for StudioScreen.");
-        console.log(skit);
-    } else {
+    if (skit) {
         console.log("Current skit for StudioScreen:", skit);
     }
 

@@ -2,7 +2,7 @@ import {ReactElement} from "react";
 import {StageBase, StageResponse, InitialData, Message, Character, User} from "@chub-ai/stages-ts";
 import {LoadResponse} from "@chub-ai/stages-ts/dist/types/load";
 import { Actor, loadReserveActorFromFullPath } from "./Actor";
-import { generateSkitScript, Skit } from "./Skit";
+import { generateSkitScript, Skit, SkitType } from "./Skit";
 import { BaseScreen } from "./Screens/BaseScreen";
 
 type MessageStateType = any;
@@ -189,6 +189,37 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         
         // Add the promise to the array for tracking
         this.loadPromises.push(contestantLoadPromise);
+        
+        // Create the initial GAME_INTRO skit and generate its script as part of the startup
+        const gameIntroPromise = (async () => {
+            const studioDescription = "The studio is a vibrant and dynamic space, designed to evoke the excitement and glamour of a high-stakes dating gameshow. The stage is set with bright, colorful lights that create an energetic atmosphere, while large LED screens display dynamic backgrounds that change with each skit. The audience area is filled with enthusiastic spectators, their cheers and reactions adding to the lively ambiance. The contestant's podium is sleek and modern, equipped with interactive elements that allow the player to make choices that influence the flow of the game. Overall, the studio is a visually stimulating environment that immerses the player in the thrilling world of SoulMatcher.";
+            
+            // Create the intro skit with empty script
+            const introSkit = new Skit({
+                skitType: SkitType.GAME_INTRO,
+                script: [],
+                presentActors: [hostActor.id],
+                locationDescription: studioDescription,
+                locationImageUrl: ''
+            });
+            
+            // Generate the initial script
+            const scriptResult = await generateSkitScript(introSkit, this);
+            introSkit.script = scriptResult.entries;
+            
+            // Add to skits and save
+            this.saveData.skits.push(introSkit);
+            this.saveGame();
+            console.log('Game intro skit generated and ready!');
+        })().finally(() => {
+            // Remove this promise from the array when complete
+            const index = this.loadPromises.indexOf(gameIntroPromise);
+            if (index > -1) {
+                this.loadPromises.splice(index, 1);
+            }
+        });
+        
+        this.loadPromises.push(gameIntroPromise);
         // Don't await - let it run in the background
     }
 

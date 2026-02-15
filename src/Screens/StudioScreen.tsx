@@ -5,6 +5,7 @@ import { ScreenType } from "./BaseScreen";
 import { Actor } from "../Actor";
 import { NovelVisualizer } from "@lord-raven/novel-visualizer";
 import { Emotion } from "../Emotion";
+import { Box } from "@mui/material";
 
 interface StudioScreenProps {
     stage: () => Stage;
@@ -204,6 +205,43 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             enableAudio={!stage().saveData.disableTextToSpeech}
             enableGhostSpeakers={true}
             enableTalkingAnimation={true}
+            renderActorHoverInfo={(actor) => {
+                const typedActor = actor as Actor;
+                return (
+                    <Box
+                        sx={{
+                            padding: 2,
+                            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                            borderRadius: 2,
+                            border: `2px solid ${typedActor.themeColor || '#ffffff'}`,
+                            maxWidth: 300,
+                        }}
+                    >
+                        <Box
+                            component="h3"
+                            sx={{
+                                margin: 0,
+                                marginBottom: 1,
+                                color: typedActor.themeColor || '#ffffff',
+                                fontFamily: typedActor.themeFontFamily || 'inherit',
+                                fontSize: '1.2rem',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            {typedActor.name}
+                        </Box>
+                        <Box
+                            sx={{
+                                color: '#ffffff',
+                                fontSize: '0.9rem',
+                                lineHeight: 1.4,
+                            }}
+                        >
+                            {typedActor.profile}
+                        </Box>
+                    </Box>
+                );
+            }}
         /> : <></>}
     </div>
     );

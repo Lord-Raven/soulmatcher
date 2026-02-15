@@ -2,7 +2,7 @@ import {ReactElement} from "react";
 import {StageBase, StageResponse, InitialData, Message, Character, User} from "@chub-ai/stages-ts";
 import {LoadResponse} from "@chub-ai/stages-ts/dist/types/load";
 import { Actor, loadReserveActorFromFullPath } from "./Actor";
-import { Skit } from "./Skit";
+import { generateSkitScript, Skit } from "./Skit";
 import { BaseScreen } from "./Screens/BaseScreen";
 
 type MessageStateType = any;
@@ -120,6 +120,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     async startNewGame(playerDetails: Partial<Actor>): Promise<void> {
         // Initialize everything.
         this.saveData.skits = [];
+        this.saveData.actors = {};
+        this.saveData.gameProgress = this.createInitialGameProgress();
         // Player actor:
         const playerActor = new Actor({
             ...playerDetails,

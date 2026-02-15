@@ -1,5 +1,5 @@
 import { Stage, GamePhase } from "../Stage";
-import { Skit, SkitType, ScriptEntry } from "../Skit";
+import { Skit, SkitType, ScriptEntry, generateSkitScript } from "../Skit";
 import { FC } from "react";
 import { ScreenType } from "./BaseScreen";
 import { Actor } from "../Actor";
@@ -231,27 +231,59 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     };
 
     // Handler for when a skit completes
-    const handleSkitComplete = () => {
-        console.log('Skit complete, determining next steps...');
-        const currentPhase = stage().getCurrentPhase();
-        
-        // Phases that need external UI for player input
-        const needsPlayerInput = [
-            GamePhase.FINALIST_SELECTION,
-            GamePhase.FINAL_VOTING
-        ];
-        
-        if (needsPlayerInput.includes(currentPhase)) {
-            // TODO: Show selection UI instead of generating new skit
-            console.log(`Phase ${currentPhase} requires player input - not generating new skit yet`);
+    const handleSubmitInput = async (input: string, skit: any, index: number) => {
+        if (input.trim() === '' && index < (skit as Skit).script.length - 1) {
+            console.log('No input and more skit to display; no action needed.');
+            return;
+        } else if (input.trim() === '' && (skit as Skit).script[index].endScene) {
+            console.log('No input and skit complete; proceed to next phase or whatever.');
+            const currentPhase = stage().getCurrentPhase();
+
+            // Phases that need external UI for player input
+            const needsPlayerInput = [
+                GamePhase.FINALIST_SELECTION,
+                GamePhase.FINAL_VOTING
+            ];
+            
+            if (needsPlayerInput.includes(currentPhase)) {
+                // TODO: Show selection UI instead of generating new skit
+                console.log(`Phase ${currentPhase} requires player input - not generating new skit yet`);
+                return;
+            }
+            
+            // Generate and add the next skit
+            const nextSkit = generateNextSkit();
+            stage().saveData.skits.push(nextSkit);
+            stage().saveGame();
+            console.log(`Generated new skit for phase: ${stage().getCurrentPhase()}`);
+
+            return;
+        } else if (input.trim() === '') {
+            console.log('No input but skit not complete; generate more content.');
+            const nextEntries = await generateSkitScript(skit as Skit, stage());
+            (skit as Skit).script.push(...nextEntries.entries);
+            stage().saveGame();
+            console.log('Generated additional skit content after empty input.');
+            return;
+        } else if (input.trim() !== '') {
+            console.log(`Received player input: "${input}" at index ${index} of skit script.`);
+            // Here, we would discard messages beyond this index and then generate new content
+
+            (skit as Skit).script = (skit as Skit).script.slice(0, index + 1);
+            (skit as Skit).script.push(new ScriptEntry({
+                speakerId: stage().getPlayerActor().id,
+                message: input,
+                speechUrl: '',
+                actorEmotions: {},
+            }));
+            const nextEntries = await generateSkitScript(skit as Skit, stage());
+            (skit as Skit).script.push(...nextEntries.entries);
+            stage().saveGame();
+            console.log('Updated skit script with player input, now generating new content.');
+
             return;
         }
-        
-        // Generate and add the next skit
-        const nextSkit = generateNextSkit();
-        stage().saveData.skits.push(nextSkit);
-        stage().saveGame();
-        console.log(`Generated new skit for phase: ${stage().getCurrentPhase()}`);
+
     };
     
     // Returns the last emotion for the given actor in the skit up to the current index, or neutral if none found.
@@ -283,13 +315,16 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     return (<div>
         {(skit && skit.script) ? <NovelVisualizer
             script={skit}
-            backgroundImageUrl={skit.locationImageUrl || ''}
+            getBackgroundImageUrl={(script, index: number) => {return (script as Skit).locationImageUrl || ''}}
             isVerticalLayout={isVerticalLayout}
             actors={stage().saveData.actors}
-            getPresentActors={(skit: Skit, index: number) => skit.presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
-            resolveSpeaker={(skit: Skit, index: number) => {console.log('Resolving speaker at index', index); return stage().saveData.actors[skit.script?.[index]?.speakerId || ''] || null;}}
-            getActorImageUrl={(actor: Actor, skit: Skit, index: number) => {return actor.emotionPack[determineEmotion(actor.id, skit, index)];}}
-            onClose={handleSkitComplete}
+            getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
+            resolveSpeaker={(script, index: number) => {console.log('Resolving speaker at index', index); return stage().saveData.actors[(script as Skit).script?.[index]?.speakerId || ''] || null;}}
+            getActorImageUrl={(actor, script, index: number) => {return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
+            onSubmitInput={handleSubmitInput}
+            enableAudio={!stage().saveData.disableTextToSpeech}
+            allowGhostSpeakers={true}
+            enableTalkingAnimation={true}
         /> : <></>}
     </div>
     );

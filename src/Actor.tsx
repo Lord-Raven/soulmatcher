@@ -258,3 +258,93 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
 
     return newActor;
 }
+
+/**
+ * Calculate a similarity score between two names. Higher scores indicate better matches.
+ * Returns a value between 0 and 1, where 1 is a perfect match.
+ * @param name The reference name
+ * @param possibleName The name to compare against
+ * @returns A similarity score between 0 and 1
+ */
+export function getNameSimilarity(name: string, possibleName: string): number {
+    name = name.toLowerCase();
+    possibleName = possibleName.toLowerCase();
+
+    // Exact match gets perfect score
+    if (name === possibleName) {
+        return 1.0;
+    }
+
+    // Check word-based matching first (higher priority)
+    const names = name.split(' ');
+    const possibleNames = possibleName.split(' ');
+    
+    // Count matching words
+    let matchingWords = 0;
+    for (const namePart of names) {
+        if (possibleName.includes(namePart)) {
+            matchingWords++;
+        }
+    }
+    
+    // If we have good word matches, prioritize that
+    const wordMatchRatio = matchingWords / names.length;
+    if (wordMatchRatio >= 0.5) {
+        // Boost score for word matches, scaled by the ratio
+        return 0.7 + (wordMatchRatio * 0.3);
+    }
+
+    // Use Levenshtein distance for fuzzy matching
+    const matrix = Array.from({ length: name.length + 1 }, () => Array(possibleName.length + 1).fill(0));
+    for (let i = 0; i <= name.length; i++) {
+        for (let j = 0; j <= possibleName.length; j++) {
+            if (i === 0) {
+                matrix[i][j] = j;
+            } else if (j === 0) {
+                matrix[i][j] = i;
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j - 1] + (name[i - 1] === possibleName[j - 1] ? 0 : 1)
+                );
+            }
+        }
+    }
+    
+    const distance = matrix[name.length][possibleName.length];
+    const maxLength = Math.max(name.length, possibleName.length);
+    
+    // Convert distance to similarity (0 to 1)
+    return Math.max(0, 1 - (distance / maxLength));
+}
+
+/**
+ * Find the best matching name from a list of candidates.
+ * @param searchName The name to search for
+ * @param candidates An array of objects with name properties
+ * @returns The best matching candidate, or null if no good match is found
+ */
+export function findBestNameMatch<T extends { name: string }>(
+    searchName: string,
+    candidates: T[]
+): T | null {
+    if (!searchName || candidates.length === 0) {
+        return null;
+    }
+
+    let bestMatch: T | null = null;
+    let bestScore = 0;
+    const threshold = 0.7; // Minimum similarity threshold
+
+    for (const candidate of candidates) {
+        const score = getNameSimilarity(candidate.name, searchName);
+        // Only consider matches above threshold
+        if (score > threshold && score > bestScore) {
+            bestScore = score;
+            bestMatch = candidate;
+        }
+    }
+
+    return bestMatch;
+}

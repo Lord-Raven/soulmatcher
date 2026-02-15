@@ -43,8 +43,8 @@ type ChatStateType = {
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
-    readonly FETCH_AT_TIME = 10;
-    readonly MAX_PAGES = 100;
+    readonly FETCH_AT_TIME = 20;
+    readonly MAX_PAGES = 50;
     readonly bannedTagsDefault = [
         'FUZZ',
         'child',
@@ -171,7 +171,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
                 if (reserveActors.length < this.CONTESTANT_COUNT) {
                     console.log(`Only found ${reserveActors.length} valid contestants so far; continuing search...`);
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                 } else {
                     console.log(`Found ${reserveActors.length} valid contestants!`);
                     console.log(reserveActors);

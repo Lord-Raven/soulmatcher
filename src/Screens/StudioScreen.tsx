@@ -1,5 +1,5 @@
 import { Stage, GamePhase } from "../Stage";
-import { Skit, SkitType, ScriptEntry, generateSkitScript } from "../Skit";
+import { ScriptEntry, Skit, SkitType, generateSkitScript } from "../Skit";
 import { FC } from "react";
 import { ScreenType } from "./BaseScreen";
 import { Actor } from "../Actor";
@@ -31,16 +31,16 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     skitType: SkitType.GAME_INTRO,
                     script: [
                         new ScriptEntry({
-                            speakerId: hostActor.id,
-                            message: "Welcome to SoulMatcher, the ultimate dating gameshow where your choices shape your romantic destiny! Get ready to meet intriguing contestants, navigate unexpected twists, and find out if you have what it takes to win the heart of your perfect match. Let the games begin!",
+                            speakerId: '',
+                            message: "Welcome to SoulMatcher, the ultimate dating gameshow where your choices shape your romantic destiny—forever! Get ready to meet intriguing contestants, navigate unexpected twists, and find out if you have what it takes to win the heart of your perfect match. Let the games begin!",
                             speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.joy },
+                            actorEmotions: { [hostActor.id]: Emotion.pride },
                         }),
                         new ScriptEntry({
                             speakerId: '',
-                            message: "As you step onto the stage, the dazzling lights and roaring audience fill you with a mix of excitement and nerves. The host's charismatic voice welcomes you to the show, setting the tone for an unforgettable experience. You glance around, taking in the vibrant atmosphere of the studio, and prepare yourself for the thrilling journey ahead on SoulMatcher!",
+                            message: "The curtain rises, revealing the dazzling lights and roaring audience. Your host, Cupid, flutters onto the stage with a flourish, captivating everyone's attention. He turns to you, his eyes twinkling with excitement as he prepares to recap the show's premise for his newest viewers.",
                             speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.pride },
+                            actorEmotions: { [hostActor.id]: Emotion.joy },
                         })
                     ],
                     presentActors: [hostActor.id, ...stage().getContestantActors().map(c => c.id)],
@@ -60,32 +60,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     
                     return new Skit({
                         skitType: SkitType.CONTESTANT_INTRO,
-                        script: [
-                            new ScriptEntry({
-                                speakerId: hostActor.id,
-                                message: `Let's welcome our ${stage().saveData.gameProgress.contestantsIntroduced.length === 1 ? 'first' : 'next'} contestant to the stage... ${nextContestant.name}!`,
-                                speechUrl: '',
-                                actorEmotions: { [hostActor.id]: Emotion.joy },
-                            }),
-                            new ScriptEntry({
-                                speakerId: nextContestant.id,
-                                message: `Hello everyone! ${nextContestant.description}`,
-                                speechUrl: '',
-                                actorEmotions: { [nextContestant.id]: Emotion.joy },
-                            }),
-                            new ScriptEntry({
-                                speakerId: hostActor.id,
-                                message: `Tell us a bit about yourself, ${nextContestant.name}!`,
-                                speechUrl: '',
-                                actorEmotions: { [hostActor.id]: Emotion.curiosity },
-                            }),
-                            new ScriptEntry({
-                                speakerId: nextContestant.id,
-                                message: nextContestant.profile,
-                                speechUrl: '',
-                                actorEmotions: { [nextContestant.id]: Emotion.pride },
-                            })
-                        ],
+                        script: [],
                         presentActors: [hostActor.id, playerActor.id, nextContestant.id],
                         locationDescription: studioDescription,
                         locationImageUrl: ''
@@ -100,26 +75,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 const allContestants = stage().getContestantActors();
                 return new Skit({
                     skitType: SkitType.GROUP_INTERVIEW,
-                    script: [
-                        new ScriptEntry({
-                            speakerId: hostActor.id,
-                            message: "Now that you've met all our wonderful contestants, let's have a group discussion! This is your chance to see how they interact with each other.",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.joy },
-                        }),
-                        new ScriptEntry({
-                            speakerId: '',
-                            message: "The contestants engage in lively conversation, their personalities shining through as they discuss their hopes, dreams, and what they're looking for in a partner.",
-                            speechUrl: '',
-                            actorEmotions: {},
-                        }),
-                        new ScriptEntry({
-                            speakerId: hostActor.id,
-                            message: "Wonderful chemistry! Now, it's time for our player to make a crucial decision...",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.pride },
-                        })
-                    ],
+                    script: [],
                     presentActors: [hostActor.id, playerActor.id, ...allContestants.map(c => c.id)],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
@@ -127,17 +83,10 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
 
             case GamePhase.FINALIST_SELECTION:
                 // TODO: This phase needs player input - will be handled separately
-                // For now, just create a placeholder that explains what needs to happen
+                // For now, just create an empty skit
                 return new Skit({
                     skitType: SkitType.GROUP_INTERVIEW,
-                    script: [
-                        new ScriptEntry({
-                            speakerId: hostActor.id,
-                            message: "Please select your three finalists! This is a crucial decision that will shape the rest of the game.",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.neutral },
-                        })
-                    ],
+                    script: [],
                     presentActors: [hostActor.id, playerActor.id],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
@@ -155,26 +104,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     
                     return new Skit({
                         skitType: SkitType.FINALIST_ONE_ON_ONE,
-                        script: [
-                            new ScriptEntry({
-                                speakerId: hostActor.id,
-                                message: `Time for a one-on-one with ${nextFinalist.name}! You two will have some private time to get to know each other better.`,
-                                speechUrl: '',
-                                actorEmotions: { [hostActor.id]: Emotion.joy },
-                            }),
-                            new ScriptEntry({
-                                speakerId: nextFinalist.id,
-                                message: `I'm so excited for this opportunity to connect with you on a deeper level.`,
-                                speechUrl: '',
-                                actorEmotions: { [nextFinalist.id]: Emotion.love },
-                            }),
-                            new ScriptEntry({
-                                speakerId: '',
-                                message: `The two of you share an intimate conversation, exploring common interests and building a genuine connection.`,
-                                speechUrl: '',
-                                actorEmotions: { [nextFinalist.id]: Emotion.joy, [playerActor.id]: Emotion.joy },
-                            })
-                        ],
+                        script: [],
                         presentActors: [playerActor.id, nextFinalist.id],
                         locationDescription: "A cozy, intimate setting with soft lighting and comfortable seating, perfect for getting to know someone better.",
                         locationImageUrl: ''
@@ -189,14 +119,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 stage().advancePhase(GamePhase.GAME_COMPLETE);
                 return new Skit({
                     skitType: SkitType.RESULTS,
-                    script: [
-                        new ScriptEntry({
-                            speakerId: hostActor.id,
-                            message: "The moment of truth has arrived! It's time to reveal who has won the heart of our contestant!",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.joy },
-                        })
-                    ],
+                    script: [],
                     presentActors: [hostActor.id, playerActor.id, ...stage().saveData.gameProgress.finalistIds.map(id => id)],
                     locationDescription: studioDescription,
                     locationImageUrl: ''
@@ -205,18 +128,10 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             case GamePhase.GAME_COMPLETE:
                 return new Skit({
                     skitType: SkitType.RESULTS,
-                    script: [
-                        new ScriptEntry({
-                            speakerId: hostActor.id,
-                            message: "Thank you for playing SoulMatcher! What an incredible journey this has been!",
-                            speechUrl: '',
-                            actorEmotions: { [hostActor.id]: Emotion.joy },
-                        })
-                    ],
+                    script: [],
                     presentActors: [hostActor.id, playerActor.id],
                     locationDescription: studioDescription,
-                    locationImageUrl: '',
-
+                    locationImageUrl: ''
                 });
 
             default:
@@ -251,8 +166,10 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return;
             }
             
-            // Generate and add the next skit
-            const nextSkit = await generateNextSkit();
+            // Generate the next skit and generate its initial script before returning
+            const nextSkit = generateNextSkit();
+            const scriptResult = await generateSkitScript(nextSkit, stage());
+            nextSkit.script.push(...scriptResult.entries);
             stage().saveData.skits.push(nextSkit);
             stage().saveGame();
             console.log(`Generated new skit for phase: ${stage().getCurrentPhase()}`);

@@ -44,9 +44,12 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
     const dataName = item.node.definition.name.replaceAll('{{char}}', item.node.definition.name).replaceAll('{{user}}', 'Individual X');
     console.log(item);
 
-    const emotionPacks: EmotionPack[] = [item.node.definition.extensions?.chub?.expressions ?? null, ...Object.values(item.node.definition.extensions?.chub?.alt_expressions ?? {})]
-        .filter(pack => pack !== null && Object.values(pack.expressions).some(imageUrl => !(imageUrl as String).includes("emotions/1/")) && pack.expressions['neutral'] && !pack.expressions['neutral'].includes("emotions/1/"))
-        .filter(async pack => {
+    const candidatePacks = [item.node.definition.extensions?.chub?.expressions ?? null, ...Object.values(item.node.definition.extensions?.chub?.alt_expressions ?? {})]
+        .filter(pack => pack !== null && Object.values(pack.expressions).some(imageUrl => !(imageUrl as String).includes("emotions/1/")) && pack.expressions['neutral'] && !pack.expressions['neutral'].includes("emotions/1/"));
+    
+    // Check each pack asynchronously for transparency and size requirements
+    const packChecks = await Promise.all(
+        candidatePacks.map(async pack => {
             // Fetch an image from each emotion pack and inspect the top left pixel to see if it's transparent. If not, discard this emotion pack
             // Fetch the neutral image from the pack
             try {
@@ -64,15 +67,21 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
                 const isTransparent = pixelData[3] === 0;
                 if (!isTransparent) {
                     console.log(`Discarding emotion pack due to non-transparent pixels: ${pack.expressions['neutral']}`);
+                    return false;
+                } else if (imgBitmap.width < 600 || imgBitmap.height < 600) {
+                    console.log(`Discarding emotion pack due to small image size: ${pack.expressions['neutral']}`);
+                    return false;
                 }
-                return isTransparent;
+                return true;
             } catch (error) {
                 // Failed to fetch avatar image.
                 console.log(`Discarding actor due to failed avatar image fetch: ${data.name}`);
                 return false;
             }
         })
+    );
     
+    const emotionPacks: EmotionPack[] = candidatePacks.filter((_, index) => packChecks[index]);
 
     if (emotionPacks.length === 0) {
         console.log(`Discarding actor due to missing or unsupported emotion pack: ${dataName}`);
@@ -89,7 +98,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
         // Use the first emotionPack, but modify any entries that include "emotions/1/" to be undefined (they will default to neutral in-game).
         emotionPack: Object.fromEntries(
             Object.entries(emotionPacks[0].expressions).map(([key, value]) =>
-                key.includes("emotions/1/") ? [key, undefined] : [key, value]
+                value.includes("emotions/1/") ? [key, undefined] : [key, value]
             )
         ),
     };

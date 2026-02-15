@@ -144,10 +144,6 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     `NARRATOR: [CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     `${stage.getPlayerActor().name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
                     `\n\n` +
-                (skit.script.length > 0 ? (`Example Summary Script Format:\n` +
-                    `CHARACTER NAME: [CHARACTER NAME EXPRESSES OPTIMISM] Character Name smiles at you. "I think we made real progress here today. Thanks!"\n` +
-                    `NARRATOR: There's a moment of real connection between the both of you. Something the PARC could use more of.\n` +
-                    `[SUMMARY: This moment of shared commaraderie has left Character Name hopeful about their future aboard the PARC.]\n\n`) : '') +
                 `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
@@ -160,14 +156,10 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
-                (skit.script.length > 0 ? (`If a scene transition is desired, the current scene must first be summarized. ` +
-                    `\n\n  A "[SUMMARY]" tag (e.g., "[SUMMARY: A paragraph summarizing the scene's events with key details and impacts.]") should be included when the scene reaches a conclusive moment. `) : '') +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
                 `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
-                (skit.script.length > 0 ? (`\nIf the script reaches a conclusion, depicts a scene change, or hits an implied closure, ` +
-                `remember to insert a "[SUMMARY: A paragraph summarizing this scene's key events or impacts.]" tag, so the game engine can store the summary.`) : '') +
                 ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Special emotion and movement tags continue to use English (these are invisible to the user).` : '')
             );
 
@@ -182,7 +174,6 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 // First, detect and parse any tags that may be embedded in the response.
                 let text = response.result;
                 let endScene = false;
-                let summary = undefined;
 
                 // Strip double-asterisks. TODO: Remove this once other model issue is resolved.
                 text = text.replace(/\*\*/g, '');
@@ -202,15 +193,6 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 for (const line of lines) {
                     // Skip empty lines
                     let trimmed = line.trim();
-
-                    // First, look for an ending tag.
-                    if (trimmed.startsWith('[SUMMARY')) {
-                        console.log("Detected end scene tag.");
-                        endScene = true;
-                        const summaryMatch = /\[SUMMARY:\s*([^\]]+)\]/i.exec(trimmed);
-                        summary = summaryMatch ? summaryMatch[1].trim() : undefined;
-                        continue;
-                    }
 
                     // If a line doesn't end with ], ., !, ?, or ", then it's likely incomplete and we should drop it.
                     if (!trimmed || ![']', '*', '_', ')', '.', '!', '?', '"', '\''].some(end => trimmed.endsWith(end))) continue;
@@ -342,7 +324,48 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     }
                 });
 
-                // Wait for all TTS generation to complete
+                // Run a prompt to detect whether the script has reached a natural conclusion or scene change. Add the promise to the ttsPromises so it runs concurrently.
+                const sceneCompletionPromise = (async () => {
+                    if (!skit.script || skit.script.length === 0) {
+                        // Don't check for completion on the first generation
+                        return;
+                    }
+                    
+                    const completionPrompt = `{{messages}}\nYou are analyzing a scene from a dating gameshow visual novel to determine if it has reached a natural conclusion.\n\n` +
+                        `Scene Context:\n${getSkitTypePrompt(skit.skitType, stage, skit)}\n\n` +
+                        `Full Scene Script:\n${buildScriptLog(stage, skit, scriptEntries)}\n\n` +
+                        `Question: Has this scene fulfilled its narrative purpose and reached a natural conclusion or transition point where the show should move to the next phase?\n\n` +
+                        `Respond with exactly one of these terms:\n` +
+                        `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose, or hit a clear transition point\n` +
+                        `- SCENE_CONTINUES if the scene still has meaningful developments to explore or feels incomplete\n\n` +
+                        `Begin the response with the appropriate term, followed by "###" and a brief explanation of your reasoning.`;
+                    
+                    try {
+                        const response = await stage.generator.textGen({
+                            prompt: completionPrompt,
+                            min_tokens: 1,
+                            max_tokens: 20,
+                            include_history: false,
+                            stop: ['###'] // Don't really want reasoning; gaslighting the LLM into holding off on explaining until after the stopping string.
+                        });
+                        
+                        if (response && response.result) {
+                            const result = response.result.trim().toUpperCase();
+                            if (result.includes('SCENE_COMPLETE')) {
+                                console.log('Scene completion detected by LLM');
+                                endScene = true;
+                            } else {
+                                console.log('Scene continues per LLM analysis');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error checking scene completion:', error);
+                    }
+                })();
+                
+                ttsPromises.push(sceneCompletionPromise);
+
+                // Wait for all TTS generation and scene completion check to complete
                 await Promise.all(ttsPromises);
 
                 // Attach endScene and endProperties to the final entry if the scene ended

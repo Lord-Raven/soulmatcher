@@ -84,6 +84,29 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     locationImageUrl: ''
                 });
 
+            case GamePhase.LOSER_INTERVIEW:
+                const nextLoserPair = stage().getNextLoserPair();
+                if (nextLoserPair && nextLoserPair.length > 0) {
+                    // Mark these losers as interviewed
+                    stage().markLosersInterviewed(nextLoserPair.map(a => a.id));
+                    
+                    // Check if all losers have been interviewed
+                    if (stage().allLosersInterviewed()) {
+                        stage().advancePhase(GamePhase.FINALIST_ONE_ON_ONE);
+                    }
+                    
+                    return new Skit({
+                        skitType: SkitType.LOSER_INTERVIEW,
+                        script: [],
+                        presentActors: nextLoserPair.map(a => a.id),
+                        locationDescription: studioDescription,
+                        locationImageUrl: ''
+                    });
+                }
+                // Fallthrough if no losers found (shouldn't happen)
+                stage().advancePhase(GamePhase.FINALIST_ONE_ON_ONE);
+                return generateNextSkit();
+
             case GamePhase.FINALIST_ONE_ON_ONE:
                 const nextFinalist = stage().getNextFinalistToInterview();
                 if (nextFinalist) {
@@ -196,18 +219,18 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         const currentPhase = stage().getCurrentPhase();
         
         if (currentPhase === GamePhase.FINALIST_SELECTION) {
-            // Save the finalists and advance to one-on-one interviews
+            // Save the finalists and advance to loser interviews
             stage().setFinalists(selectedIds);
-            stage().advancePhase(GamePhase.FINALIST_ONE_ON_ONE);
+            stage().advancePhase(GamePhase.LOSER_INTERVIEW);
             setShowSelectionUI(false);
             
-            // Generate the first finalist interview skit
+            // Generate the first loser interview skit
             const nextSkit = generateNextSkit();
             const scriptResult = await generateSkitScript(nextSkit, stage());
             nextSkit.script.push(...scriptResult.entries);
             stage().addSkit(nextSkit);
             stage().saveGame();
-            console.log('Generated first finalist one-on-one skit');
+            console.log('Generated first loser interview skit');
         } else if (currentPhase === GamePhase.FINAL_VOTING) {
             // Save the player's final choice
             stage().setPlayerChoice(selectedIds[0]);

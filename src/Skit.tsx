@@ -6,6 +6,7 @@ export enum SkitType {
     GAME_INTRO = 'GAME_INTRO',
     CONTESTANT_INTRO = 'CONTESTANT_INTRO',
     GROUP_INTERVIEW = 'GROUP_INTERVIEW',
+    LOSER_INTERVIEW = 'LOSER_INTERVIEW',
     FINALIST_ONE_ON_ONE = 'FINALIST_ONE_ON_ONE',
     RESULTS = 'RESULTS',
 }
@@ -35,6 +36,12 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
         case SkitType.GROUP_INTERVIEW:
             return 'The player is interviewing multiple contestants together in a group setting. This scene involves dynamic interactions between the candidates, opportunities for them to compete or cooperate, and moments where the player can gauge compatibility with each one. Group chemistry and individual personalities come into play.';
         
+        case SkitType.LOSER_INTERVIEW:
+            if (targetContestants.length === 2) {
+                return `Two contestants who did not make it to the finals, ${targetContestants[0].name} and ${targetContestants[1].name}, are given a moment to offer their parting words to the player, Cupid, and the audience. This is a poignant scene for closure and reflection. They may express gracious acceptance of their elimination, share final thoughts about their connection with the player, or offer encouragement. The tone should be bittersweet but ultimately respectful and kind, allowing these characters to exit the gameshow with dignity and grace.`;
+            }
+            return 'The contestants who did not make it to the finals are given a moment to offer their parting words to the player, Cupid, and the audience. This is a poignant scene for closure and reflection, allowing these characters to exit the gameshow with dignity and grace.';
+        
         case SkitType.FINALIST_ONE_ON_ONE:
             if (targetContestant) {
                 return `The player is in a private, intimate moment with ${targetContestant.name}, one of the finalists. ${targetContestant.name}'s profile shows: ${targetContestant.description}. This scene is more personal and romantic than previous interactions, allowing for deeper conversation, vulnerability, and genuine connection. This is a pivotal moment to explore whether ${targetContestant.name} could truly be ${player.name}'s soulmate.`;
@@ -61,6 +68,8 @@ export function generateSkitId(skitType: SkitType, contextActorId?: string): str
             return `skit-CONTESTANT_INTRO-${contextActorId}`;
         case SkitType.GROUP_INTERVIEW:
             return 'skit-GROUP_INTERVIEW';
+        case SkitType.LOSER_INTERVIEW:
+            return 'skit-LOSER_INTERVIEW';
         case SkitType.FINALIST_ONE_ON_ONE:
             return `skit-FINALIST_ONE_ON_ONE-${contextActorId}`;
         case SkitType.RESULTS:

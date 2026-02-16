@@ -14,6 +14,7 @@ export enum GamePhase {
     CONTESTANT_INTRO = 'CONTESTANT_INTRO',               // Introducing contestants one at a time
     GROUP_INTERVIEW = 'GROUP_INTERVIEW',                 // Group contestant interview
     FINALIST_SELECTION = 'FINALIST_SELECTION',           // Player chooses three finalists
+    LOSER_INTERVIEW = 'LOSER_INTERVIEW',                 // Losers offer their parting words
     FINALIST_ONE_ON_ONE = 'FINALIST_ONE_ON_ONE',         // One-on-one skits with finalists
     FINAL_VOTING = 'FINAL_VOTING',                       // Player, host, and audience vote
     GAME_COMPLETE = 'GAME_COMPLETE'                      // Game finished
@@ -23,6 +24,7 @@ export type GameProgressState = {
     currentPhase: GamePhase;
     contestantsIntroduced: string[];      // Array of Actor IDs that have been introduced
     finalistIds: string[];                // Array of Actor IDs chosen as finalists
+    losersInterviewed: string[];          // Array of loser contestant IDs that have had goodbye skits
     finalistsInterviewed: string[];       // Array of finalist Actor IDs that have had one-on-ones
     playerChoice: string | null;          // Actor ID of player's final choice
     hostChoice: string | null;            // Actor ID of host's choice
@@ -279,6 +281,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             currentPhase: GamePhase.GAME_INTRO,
             contestantsIntroduced: [],
             finalistIds: [],
+            losersInterviewed: [],
             finalistsInterviewed: [],
             playerChoice: null,
             hostChoice: null,
@@ -361,6 +364,43 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             id => !this.saveData.gameProgress.finalistsInterviewed.includes(id)
         );
         return finalistId ? this.saveData.actors[finalistId] : null;
+    }
+
+    // Get losers (all contestants who are not finalists)
+    getLoserActors(): Actor[] {
+        const finalistIds = this.saveData.gameProgress.finalistIds;
+        return this.getContestantActors().filter(c => !finalistIds.includes(c.id));
+    }
+
+    // Get pairs of losers who haven't been interviewed yet
+    getNextLoserPair(): Actor[] | null {
+        const losers = this.getLoserActors();
+        const uninterviewedLosers = losers.filter(c => !this.saveData.gameProgress.losersInterviewed.includes(c.id));
+        
+        // Return pairs of losers (2 at a time)
+        if (uninterviewedLosers.length >= 2) {
+            return uninterviewedLosers.slice(0, 2);
+        } else if (uninterviewedLosers.length === 1) {
+            // If only one loser remains, include them
+            return uninterviewedLosers;
+        }
+        return null;
+    }
+
+    // Mark losers as interviewed
+    markLosersInterviewed(actorIds: string[]): void {
+        actorIds.forEach(id => {
+            if (!this.saveData.gameProgress.losersInterviewed.includes(id)) {
+                this.saveData.gameProgress.losersInterviewed.push(id);
+            }
+        });
+        this.saveGame();
+    }
+
+    // Check if all losers have been interviewed
+    allLosersInterviewed(): boolean {
+        const losers = this.getLoserActors();
+        return losers.every(loser => this.saveData.gameProgress.losersInterviewed.includes(loser.id));
     }
 
     // Callback to show priority messages in the tooltip bar

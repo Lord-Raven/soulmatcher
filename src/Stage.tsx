@@ -28,13 +28,15 @@ export type GameProgressState = {
     hostChoice: string | null;            // Actor ID of host's choice
     audienceChoice: string | null;        // Actor ID of audience's choice
     winnerId: string | null;              // Actor ID of the winner
+    currentSkitId: string | null;         // ID of the current skit being displayed
+    skitOrder: string[];                  // Ordered list of skit IDs for history tracking
 }
 
 
 
 type ChatStateType = {
     actors: {[key: string]: Actor};
-    skits: Skit[];
+    skits: {[key: string]: Skit};         // Map of skit ID to Skit
     disableTextToSpeech: boolean;
     language: string;
     bannedTags: string[];
@@ -93,7 +95,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         } else {
             this.saveData = {
                 actors: {},
-                skits: [],
+                skits: {},
                 disableTextToSpeech: false,
                 language: 'English',
                 bannedTags: [],
@@ -119,7 +121,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     // This is called when the user starts a new game; some props supplied by initial settings screen.
     async startNewGame(playerDetails: Partial<Actor>): Promise<void> {
         // Initialize everything.
-        this.saveData.skits = [];
+        this.saveData.skits = {};
         this.saveData.actors = {};
         this.saveData.gameProgress = this.createInitialGameProgress();
         // Player actor:
@@ -207,8 +209,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             const scriptResult = await generateSkitScript(introSkit, this);
             introSkit.script = scriptResult.entries;
             
-            // Add to skits and save
-            this.saveData.skits.push(introSkit);
+            // Add to skits map and save
+            this.addSkit(introSkit);
             this.saveGame();
             console.log('Game intro skit generated and ready!');
         })().finally(() => {
@@ -240,10 +242,36 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     }
 
     getCurrentSkit(): Skit | null {
-        if (this.saveData.skits.length > 0) {
-            return this.saveData.skits[this.saveData.skits.length - 1];
+        const currentSkitId = this.saveData.gameProgress.currentSkitId;
+        if (currentSkitId && this.saveData.skits[currentSkitId]) {
+            return this.saveData.skits[currentSkitId];
         }
         return null;
+    }
+
+    /**
+     * Add a skit to the save data and update tracking
+     */
+    addSkit(skit: Skit): void {
+        // Assign the skit to the map
+        this.saveData.skits[skit.id] = skit;
+        
+        // Track in order
+        if (!this.saveData.gameProgress.skitOrder.includes(skit.id)) {
+            this.saveData.gameProgress.skitOrder.push(skit.id);
+        }
+        
+        // Set as current skit
+        this.saveData.gameProgress.currentSkitId = skit.id;
+    }
+
+    /**
+     * Get skits in chronological order
+     */
+    getSkitsInOrder(): Skit[] {
+        return this.saveData.gameProgress.skitOrder
+            .map(id => this.saveData.skits[id])
+            .filter(skit => skit !== undefined);
     }
 
     createInitialGameProgress(): GameProgressState {
@@ -256,6 +284,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             hostChoice: null,
             audienceChoice: null,
             winnerId: null,
+            currentSkitId: null,
+            skitOrder: [],
         };
     }
 

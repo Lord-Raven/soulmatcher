@@ -49,7 +49,29 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
     }
 }
 
+/**
+ * Generate a deterministic ID for a skit based on its type and context.
+ * This ensures each skit has a unique, reproducible ID that represents its exact place in the game.
+ */
+export function generateSkitId(skitType: SkitType, contextActorId?: string): string {
+    switch (skitType) {
+        case SkitType.GAME_INTRO:
+            return 'skit-GAME_INTRO';
+        case SkitType.CONTESTANT_INTRO:
+            return `skit-CONTESTANT_INTRO-${contextActorId}`;
+        case SkitType.GROUP_INTERVIEW:
+            return 'skit-GROUP_INTERVIEW';
+        case SkitType.FINALIST_ONE_ON_ONE:
+            return `skit-FINALIST_ONE_ON_ONE-${contextActorId}`;
+        case SkitType.RESULTS:
+            return 'skit-RESULTS';
+        default:
+            return `skit-UNKNOWN-${Date.now()}`;
+    }
+}
+
 export class Skit {
+    id: string = '';
     skitType: SkitType = SkitType.GAME_INTRO;
     script: ScriptEntry[] = [];
     presentActors: string[] = []; // List of Actor IDs present in this skit
@@ -58,6 +80,10 @@ export class Skit {
     
     constructor(props: any) {
         Object.assign(this, props);
+        // Generate ID if not provided, using the first non-host/non-player actor as context
+        if (!this.id) {
+            this.id = generateSkitId(this.skitType, this.presentActors?.[0]);
+        }
     }
 }
 
@@ -99,8 +125,10 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
     const absentActors = Object.values(save.actors).filter(a => !presentActorIds.includes(a.id));
 
 
-    let pastSkits = save.skits || [];
-    pastSkits = pastSkits.filter((v, index) => index > (pastSkits.length || 0) - historyLength && v != skit);
+    // Get past skits in chronological order, excluding the current skit
+    let pastSkits = stage.getSkitsInOrder().filter(s => s.id !== skit.id);
+    // Get the last N skits for history
+    pastSkits = pastSkits.slice(Math.max(0, pastSkits.length - historyLength));
 
     let fullPrompt = `{{messages}}\nPremise:\nThis is an interactive visual novel depicting a modern dating gameshow hosted by the actual Roman god of love, Cupid.` +
         `The game positions the player character, ${player.name}, as the primary contestant interviewing a number of candidate love interests. After a couple rounds of interviews, ${player.name}, the audience, and Cupid himself will ` +

@@ -141,7 +141,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     const handleSubmit = async (input: string, skit: any, index: number) => {
         if (input.trim() === '' && index < (skit as Skit).script.length - 1) {
             console.log('No input and more skit to display; no action needed.');
-            return;
+            return skit;
         } else if (input.trim() === '' && (skit as Skit).script[index].endScene) {
             console.log('No input and skit complete; proceed to next phase or whatever.');
             const currentPhase = stage().getCurrentPhase();
@@ -156,25 +156,25 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 // Show selection UI instead of generating new skit
                 console.log(`Phase ${currentPhase} requires player input - showing selection UI`);
                 setShowSelectionUI(true);
-                return;
+                return skit; // Reconsider this.
             }
             
             // Generate the next skit and generate its initial script before returning
             const nextSkit = generateNextSkit();
             const scriptResult = await generateSkitScript(nextSkit, stage());
             nextSkit.script.push(...scriptResult.entries);
-            stage().saveData.skits.push(nextSkit);
+            stage().addSkit(nextSkit);
             stage().saveGame();
             console.log(`Generated new skit for phase: ${stage().getCurrentPhase()}`);
 
-            return;
+            return nextSkit;
         } else {
             console.log('Skit not over; generate more script.');
             const nextEntries = await generateSkitScript(skit as Skit, stage());
             (skit as Skit).script.push(...nextEntries.entries);
             stage().saveGame();
             console.log('Generated additional skit content after empty input.');
-            return;
+            return skit;
         }
     };
     
@@ -205,7 +205,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             const nextSkit = generateNextSkit();
             const scriptResult = await generateSkitScript(nextSkit, stage());
             nextSkit.script.push(...scriptResult.entries);
-            stage().saveData.skits.push(nextSkit);
+            stage().addSkit(nextSkit);
             stage().saveGame();
             console.log('Generated first finalist one-on-one skit');
         } else if (currentPhase === GamePhase.FINAL_VOTING) {
@@ -218,7 +218,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             const nextSkit = generateNextSkit();
             const scriptResult = await generateSkitScript(nextSkit, stage());
             nextSkit.script.push(...scriptResult.entries);
-            stage().saveData.skits.push(nextSkit);
+            stage().addSkit(nextSkit);
             stage().saveGame();
             console.log('Generated results skit after final voting');
         }

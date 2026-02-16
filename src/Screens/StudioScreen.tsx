@@ -284,6 +284,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             enableGhostSpeakers={true}
             enableTalkingAnimation={true}
             renderActorHoverInfo={(actor) => {
+                if (!actor) return null;
                 const typedActor = actor as Actor;
                 return (
                     <Box

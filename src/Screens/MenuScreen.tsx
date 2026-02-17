@@ -106,7 +106,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
 
     return (
         <BlurredBackground
-            imageUrl="https://i.imgur.com/9hF0qda.gif"
+            imageUrl="https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png"
             overlay="linear-gradient(135deg, rgba(26, 10, 46, 0.7) 0%, rgba(36, 7, 65, 0.8) 100%)"
         >
             <Box 

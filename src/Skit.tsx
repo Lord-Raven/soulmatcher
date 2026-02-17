@@ -40,7 +40,7 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
             if (targetContestants.length === 2) {
                 return `Two contestants who did not make it to the finals, ${targetContestants[0].name} and ${targetContestants[1].name}, are given a moment to offer their parting words to the player, Cupid, and the audience. This is a poignant scene for closure and reflection. They may express gracious acceptance of their elimination, share final thoughts about their connection with the player, or offer encouragement. The tone should be bittersweet but ultimately respectful and kind, allowing these characters to exit the gameshow with dignity and grace.`;
             }
-            return 'The contestants who did not make it to the finals are given a moment to offer their parting words to the player, Cupid, and the audience. This is a poignant scene for closure and reflection, allowing these characters to exit the gameshow with dignity and grace.';
+            return `The contestants who did not make it to the finals (${targetContestants.map(c => c.name).join(', ')}) are given a moment to offer their parting words to the player, Cupid, and the audience. This is a poignant scene for closure and reflection, allowing these characters to exit the gameshow with dignity and grace (or drama and indignation).`;
         
         case SkitType.FINALIST_ONE_ON_ONE:
             if (targetContestant) {
@@ -92,6 +92,9 @@ export class Skit {
         // Generate ID if not provided, using the first non-host/non-player actor as context
         if (!this.id) {
             this.id = generateSkitId(this.skitType, this.presentActors?.[0]);
+        }
+        if (!this.locationImageUrl) {
+            this.locationImageUrl = 'https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png'
         }
     }
 }

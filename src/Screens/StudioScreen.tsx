@@ -1,13 +1,14 @@
 import { Stage, GamePhase } from "../Stage";
 import { Skit, SkitType, generateSkitScript } from "../Skit";
-import { FC, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { ScreenType } from "./BaseScreen";
-import { Actor } from "../Actor";
+import { Actor, findBestNameMatch } from "../Actor";
 import { NovelVisualizer } from "@lord-raven/novel-visualizer";
 import { Emotion } from "../Emotion";
-import { Box } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { LastPage, PlayArrow } from "@mui/icons-material";
 import { CandidateSelectionUI } from "./CandidateSelectionUI";
+import { FinalResultsScreen } from "./FinalResultsScreen";
 
 interface StudioScreenProps {
     stage: () => Stage;
@@ -18,6 +19,23 @@ interface StudioScreenProps {
 // This screen represents the main game screen in a gameshow studio setting. The player will make some basic choices that lead to different skits and direct the flow of the game.
 export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVerticalLayout }) => {
     const [showSelectionUI, setShowSelectionUI] = useState(false);
+    const [showResultsUI, setShowResultsUI] = useState(false);
+    const [isGeneratingNextSkit, setIsGeneratingNextSkit] = useState(false);
+    const [finalVoteResult, setFinalVoteResult] = useState<{
+        hostChoiceId: string;
+        audienceChoiceId: string;
+        rawResponse: string;
+    } | null>(null);
+    const [isAwaitingFinalVotes, setIsAwaitingFinalVotes] = useState(false);
+    const finalVotePromiseRef = useRef<Promise<{
+        hostChoiceId: string;
+        audienceChoiceId: string;
+        rawResponse: string;
+    }> | null>(null);
+    const [isPreparingResultsSkit, setIsPreparingResultsSkit] = useState(false);
+    const resultsSkitPromiseRef = useRef<Promise<void> | null>(null);
+
+    const currentPhase = stage().getCurrentPhase();
     
     // This is a physical description of the studio space for SoulMatcher, a dating gameshow on which the player is a contestant.
     const studioDescription = "The studio is a vibrant and dynamic space, designed to evoke the excitement and glamour of a high-stakes dating gameshow. The stage is set with bright, colorful lights that create an energetic atmosphere, while large LED screens display dynamic backgrounds that change with each skit. The audience area is filled with enthusiastic spectators, their cheers and reactions adding to the lively ambiance. The contestant's podium is sleek and modern, equipped with interactive elements that allow the player to make choices that influence the flow of the game. Overall, the studio is a visually stimulating environment that immerses the player in the thrilling world of SoulMatcher.";
@@ -100,7 +118,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         script: [],
                         presentActors: nextLoserPair.map(a => a.id),
                         locationDescription: studioDescription,
-                        locationImageUrl: ''
+                        locationImageUrl: 'https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png'
                     });
                 }
                 // Fallthrough if no losers found (shouldn't happen)
@@ -159,6 +177,144 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 });
         }
     };
+
+    const buildFinalVotePrompt = (candidates: Actor[]): string => {
+        const player = stage().getPlayerActor();
+        const host = stage().getHostActor();
+        const candidateList = candidates.map(candidate => {
+            return `- ${candidate.name}: ${candidate.profile}`;
+        }).join('\n');
+
+        return `{{messages}}You are preparing structured, parseable voting results for the final match decision in a dating gameshow visual novel.` +
+            `\n\nContext:` +
+            `\nPlayer: ${player.name}` +
+            `\nCupid (Host): ${host.name}` +
+            `\n\nFinalist Candidates:` +
+            `\n${candidateList}` +
+            `\n\nTask:` +
+            `\nDecide who Cupid votes for and who the audience votes for. Each vote must be one of the finalist candidate names listed above.` +
+            `\n\nResponse Format (strict):` +
+            `\nCUPID_VOTE: <candidate name>` +
+            `\nAUDIENCE_VOTE: <candidate name>` +
+            `\n#END#`;
+    };
+
+    const parseFinalVoteResponse = (responseText: string, candidates: Actor[]) => {
+        const lines = responseText
+            .split('\n')
+            .map(line => line.replace(/\*\*/g, '').trim())
+            .filter(Boolean);
+
+        let cupidVoteText = '';
+        let audienceVoteText = '';
+
+        for (const line of lines) {
+            const normalized = line.toUpperCase();
+            if (normalized.startsWith('CUPID_VOTE')) {
+                cupidVoteText = line.split(':').slice(1).join(':').trim();
+            } else if (normalized.startsWith('AUDIENCE_VOTE')) {
+                audienceVoteText = line.split(':').slice(1).join(':').trim();
+            }
+        }
+
+        const resolveCandidateId = (voteText: string): string => {
+            const cleanedVote = voteText.replace(/["']/g, '').trim();
+            const exactMatch = candidates.find(candidate => candidate.name.toLowerCase() === cleanedVote.toLowerCase());
+            const bestMatch = findBestNameMatch(cleanedVote, candidates);
+            if (exactMatch || bestMatch) {
+                return (exactMatch || bestMatch)?.id || '';
+            }
+
+            if (candidates.length === 0) {
+                return '';
+            }
+
+            const randomIndex = Math.floor(Math.random() * candidates.length);
+            return candidates[randomIndex]?.id || candidates[0].id;
+        };
+
+        return {
+            hostChoiceId: resolveCandidateId(cupidVoteText),
+            audienceChoiceId: resolveCandidateId(audienceVoteText),
+        };
+    };
+
+    const getOrStartFinalVoteAssessment = (): Promise<{
+        hostChoiceId: string;
+        audienceChoiceId: string;
+        rawResponse: string;
+    }> => {
+        if (finalVotePromiseRef.current) {
+            return finalVotePromiseRef.current;
+        }
+
+        const candidates = stage().saveData.gameProgress.finalistIds
+            .map(id => stage().saveData.actors[id])
+            .filter(actor => actor) as Actor[];
+
+        const prompt = buildFinalVotePrompt(candidates);
+        const promise = (async () => {
+            const response = await stage().generator.textGen({
+                prompt,
+                min_tokens: 5,
+                max_tokens: 80,
+                include_history: false,
+                stop: ['#END']
+            });
+            const responseText = response?.result || '';
+            const parsedVotes = parseFinalVoteResponse(responseText, candidates);
+            return {
+                ...parsedVotes,
+                rawResponse: responseText,
+            };
+        })();
+
+        finalVotePromiseRef.current = promise;
+
+        promise
+            .then(result => {
+                setFinalVoteResult(result);
+            })
+            .catch(error => {
+                console.error('Error generating final votes:', error);
+            });
+
+        return promise;
+    };
+
+    useEffect(() => {
+        if (showSelectionUI && currentPhase === GamePhase.FINAL_VOTING) {
+            if (!finalVotePromiseRef.current && !finalVoteResult) {
+                getOrStartFinalVoteAssessment();
+            }
+        } else if (currentPhase !== GamePhase.FINAL_VOTING && !showResultsUI) {
+            finalVotePromiseRef.current = null;
+            setFinalVoteResult(null);
+            setIsAwaitingFinalVotes(false);
+        }
+    }, [currentPhase, finalVoteResult, showResultsUI, showSelectionUI]);
+
+    useEffect(() => {
+        if (!showResultsUI || resultsSkitPromiseRef.current) {
+            return;
+        }
+
+        const generateResultsSkit = async () => {
+            setIsPreparingResultsSkit(true);
+            try {
+                const nextSkit = generateNextSkit();
+                const scriptResult = await generateSkitScript(nextSkit, stage());
+                nextSkit.script.push(...scriptResult.entries);
+                stage().addSkit(nextSkit);
+                stage().saveGame();
+                console.log('Generated results skit after final voting');
+            } finally {
+                setIsPreparingResultsSkit(false);
+            }
+        };
+
+        resultsSkitPromiseRef.current = generateResultsSkit();
+    }, [showResultsUI]);
 
     // Handler for when the submit button is pressed in NovelVisualizer. At this point, if the user had input, it has been spliced into the script.
     const handleSubmit = async (input: string, skit: any, index: number) => {
@@ -223,27 +379,55 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             stage().setFinalists(selectedIds);
             stage().advancePhase(GamePhase.LOSER_INTERVIEW);
             setShowSelectionUI(false);
+            setIsGeneratingNextSkit(true);
             
-            // Generate the first loser interview skit
-            const nextSkit = generateNextSkit();
-            const scriptResult = await generateSkitScript(nextSkit, stage());
-            nextSkit.script.push(...scriptResult.entries);
-            stage().addSkit(nextSkit);
-            stage().saveGame();
-            console.log('Generated first loser interview skit');
+            try {
+                // Generate the first loser interview skit
+                const nextSkit = generateNextSkit();
+                const scriptResult = await generateSkitScript(nextSkit, stage());
+                nextSkit.script.push(...scriptResult.entries);
+                stage().addSkit(nextSkit);
+                stage().saveGame();
+                console.log('Generated first loser interview skit');
+            } finally {
+                setIsGeneratingNextSkit(false);
+            }
         } else if (currentPhase === GamePhase.FINAL_VOTING) {
             // Save the player's final choice
             stage().setPlayerChoice(selectedIds[0]);
-            stage().advancePhase(GamePhase.GAME_COMPLETE);
+            setIsAwaitingFinalVotes(true);
+
+            try {
+                const voteResult = finalVoteResult || await getOrStartFinalVoteAssessment();
+                if (voteResult?.hostChoiceId) {
+                    stage().setHostChoice(voteResult.hostChoiceId);
+                }
+                if (voteResult?.audienceChoiceId) {
+                    stage().setAudienceChoice(voteResult.audienceChoiceId);
+                }
+                const finalists = stage().saveData.gameProgress.finalistIds;
+                const voteCounts: Record<string, number> = {};
+                finalists.forEach(id => {
+                    voteCounts[id] = 0;
+                });
+                [selectedIds[0], voteResult?.hostChoiceId, voteResult?.audienceChoiceId].forEach(voteId => {
+                    if (voteId && voteCounts[voteId] !== undefined) {
+                        voteCounts[voteId] += 1;
+                    }
+                });
+                const sortedVotes = Object.entries(voteCounts).sort((a, b) => b[1] - a[1]);
+                const topScore = sortedVotes[0]?.[1] ?? 0;
+                const tied = sortedVotes.filter(([_, count]) => count === topScore).map(([id]) => id);
+                const winnerId = tied.includes(selectedIds[0]) ? selectedIds[0] : tied[0];
+                if (winnerId) {
+                    stage().setWinner(winnerId);
+                }
+            } finally {
+                setIsAwaitingFinalVotes(false);
+            }
             setShowSelectionUI(false);
-            
-            // Generate the results skit
-            const nextSkit = generateNextSkit();
-            const scriptResult = await generateSkitScript(nextSkit, stage());
-            nextSkit.script.push(...scriptResult.entries);
-            stage().addSkit(nextSkit);
-            stage().saveGame();
-            console.log('Generated results skit after final voting');
+            setShowResultsUI(true);
+            return;
         }
     };
     
@@ -253,8 +437,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         console.log("Current skit for StudioScreen:", skit);
     }
 
-    const currentPhase = stage().getCurrentPhase();
-    
     // Show selection UI for finalist selection and final voting phases
     if (showSelectionUI) {
         const candidates = currentPhase === GamePhase.FINALIST_SELECTION 
@@ -279,7 +461,59 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 scenarioTitle={scenarioTitle}
                 scenarioDescription={scenarioDescription}
                 isVerticalLayout={isVerticalLayout}
+                isProcessing={currentPhase === GamePhase.FINAL_VOTING && isAwaitingFinalVotes}
+                processingLabel="Cupid and the audience are casting their votes..."
             />
+        );
+    }
+
+    if (showResultsUI) {
+        const finalists = stage().saveData.gameProgress.finalistIds
+            .map(id => stage().saveData.actors[id])
+            .filter(actor => actor) as Actor[];
+
+        return (
+            <FinalResultsScreen
+                finalists={finalists}
+                playerChoiceId={stage().saveData.gameProgress.playerChoice}
+                hostChoiceId={stage().saveData.gameProgress.hostChoice}
+                audienceChoiceId={stage().saveData.gameProgress.audienceChoice}
+                winnerId={stage().saveData.gameProgress.winnerId}
+                isReady={!isPreparingResultsSkit}
+                onAccept={() => {
+                    setShowResultsUI(false);
+                }}
+                isVerticalLayout={isVerticalLayout}
+            />
+        );
+    }
+
+    // Show loading spinner while generating the next skit
+    if (isGeneratingNextSkit) {
+        return (
+            <Box
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minHeight: '100vh',
+                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                    flexDirection: 'column',
+                    gap: 2,
+                }}
+            >
+                <CircularProgress size={60} sx={{ color: '#FFD700' }} />
+                <Typography
+                    variant="h6"
+                    sx={{
+                        color: '#FFD700',
+                        textAlign: 'center',
+                        fontSize: '1.1rem',
+                    }}
+                >
+                    Preparing the next round...
+                </Typography>
+            </Box>
         );
     }
 
@@ -297,7 +531,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 const scriptLength = (script as Skit).script.length;
                 const endScene = (script as Skit).script[index]?.endScene || false;
                 return {
-                    label: endScene ? 'Next Round' : (scriptLength > 0 ? 'Continue' : 'Start'),
+                    label: endScene ? 'End' : (scriptLength > 0 ? 'Continue' : 'Start'),
                     enabled: true,
                     colorScheme: endScene ? 'error' : 'primary',
                     icon: endScene ? <LastPage/> : <PlayArrow/>

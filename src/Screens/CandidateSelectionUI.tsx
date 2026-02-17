@@ -1,5 +1,5 @@
-import { FC, useState, useMemo } from 'react';
-import { Box, Paper, Typography, Checkbox, Grid } from '@mui/material';
+import { FC, useState } from 'react';
+import { Box, Paper, Typography, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle } from '@mui/icons-material';
 import { Actor } from '../Actor';
@@ -13,6 +13,8 @@ interface CandidateSelectionUIProps {
     scenarioTitle: string;
     scenarioDescription?: string;
     isVerticalLayout: boolean;
+    isProcessing?: boolean;
+    processingLabel?: string;
 }
 
 /**
@@ -33,11 +35,16 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
     onContinue,
     scenarioTitle,
     scenarioDescription,
-    isVerticalLayout
+    isVerticalLayout,
+    isProcessing = false,
+    processingLabel
 }) => {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
     const toggleSelection = (actorId: string) => {
+        if (isProcessing) {
+            return;
+        }
         setSelectedIds(prev => {
             if (prev.includes(actorId)) {
                 // Deselect
@@ -53,7 +60,7 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
     };
 
     const isSelectionComplete = selectedIds.length === maxSelections;
-    const columnCount = isVerticalLayout ? 2 : 3;
+    const gridColumnTemplate = `repeat(${candidates.length}, minmax(0, 1fr))`;
 
     return (
         <motion.div
@@ -72,8 +79,36 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                     justifyContent: 'flex-start',
                     alignItems: 'center',
                     gap: 3,
+                    position: 'relative',
                 }}
             >
+                {isProcessing && (
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            inset: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 2,
+                            zIndex: 2,
+                        }}
+                    >
+                        <CircularProgress size={56} sx={{ color: '#FFD700' }} />
+                        <Typography
+                            variant="body1"
+                            sx={{
+                                color: '#FFD700',
+                                textAlign: 'center',
+                                paddingX: 2,
+                            }}
+                        >
+                            {processingLabel || 'Tabulating Cupid and audience votes...'}
+                        </Typography>
+                    </Box>
+                )}
                 {/* Header Section */}
                 <Box
                     sx={{
@@ -117,12 +152,15 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                 </Box>
 
                 {/* Candidates Grid */}
-                <Grid
-                    container
-                    spacing={2}
+                <Box
                     sx={{
-                        maxWidth: '1200px',
-                        justifyContent: 'center',
+                        width: '100%',
+                        display: 'grid',
+                        gridAutoFlow: 'column',
+                        gridTemplateColumns: gridColumnTemplate,
+                        gap: 2,
+                        alignItems: 'stretch',
+                        pointerEvents: isProcessing ? 'none' : 'auto',
                     }}
                 >
                     <AnimatePresence>
@@ -131,13 +169,12 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                             const neutralImage = candidate.emotionPack[Emotion.neutral];
 
                             return (
-                                <Grid
-                                    item
-                                    xs={6}
-                                    sm={4}
-                                    md={4}
-                                    lg={columnCount}
+                                <Box
                                     key={candidate.id}
+                                    sx={{
+                                        minWidth: 0,
+                                        display: 'flex',
+                                    }}
                                 >
                                     <motion.div
                                         initial={{ opacity: 0, y: 20 }}
@@ -146,6 +183,10 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                                         transition={{
                                             duration: 0.3,
                                             delay: index * 0.1,
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            display: 'flex',
                                         }}
                                     >
                                         <Paper
@@ -169,6 +210,9 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                                                     transform: 'scale(1.02)',
                                                 },
                                                 backdropFilter: 'blur(8px)',
+                                                width: '100%',
+                                                display: 'flex',
+                                                flexDirection: 'column',
                                             }}
                                         >
                                             {/* Character Image */}
@@ -249,11 +293,11 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                                             </Typography>
                                         </Paper>
                                     </motion.div>
-                                </Grid>
+                                </Box>
                             );
                         })}
                     </AnimatePresence>
-                </Grid>
+                </Box>
 
                 {/* Continue Button */}
                 <motion.div
@@ -263,11 +307,12 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                     style={{
                         marginTop: 'auto',
                         marginBottom: isVerticalLayout ? 2 : 4,
+                        pointerEvents: isProcessing ? 'none' : 'auto',
                     }}
                 >
                     <Button
                         variant="primary"
-                        disabled={!isSelectionComplete}
+                        disabled={!isSelectionComplete || isProcessing}
                         onClick={() => onContinue(selectedIds)}
                         style={{
                             opacity: isSelectionComplete ? 1 : 0.5,

@@ -9,6 +9,7 @@ export enum SkitType {
     LOSER_INTERVIEW = 'LOSER_INTERVIEW',
     FINALIST_ONE_ON_ONE = 'FINALIST_ONE_ON_ONE',
     RESULTS = 'RESULTS',
+    EPILOGUE = 'EPILOGUE'
 }
 
 function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string {
@@ -49,7 +50,44 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
             return 'The player is in a private, intimate moment with one of the finalists. This scene is more personal and romantic than previous interactions, allowing for deeper conversation, vulnerability, and genuine connection. This is a pivotal moment to explore whether this could be a real match.';
         
         case SkitType.RESULTS:
-            return 'The game is reaching its climax. Voting results are being revealed, eliminations are happening, and tension builds as the player discovers who the audience, other contestants, and Cupid believe could be their perfect soulmate. The tone is dramatic and emotionally charged.';
+            const playerChoiceActor = save.gameProgress.playerChoice ? save.actors[save.gameProgress.playerChoice] : null;
+            const hostChoiceActor = save.gameProgress.hostChoice ? save.actors[save.gameProgress.hostChoice] : null;
+            const audienceChoiceActor = save.gameProgress.audienceChoice ? save.actors[save.gameProgress.audienceChoice] : null;
+            const winnerActor = save.gameProgress.winnerId ? save.actors[save.gameProgress.winnerId] : null;
+            
+            let votingDetails = 'The game is reaching its climax. ';
+            
+            if (playerChoiceActor) {
+                votingDetails += `${player.name} has chosen ${playerChoiceActor.name}. `;
+            }
+            if (hostChoiceActor) {
+                votingDetails += `${host.name} has voted for ${hostChoiceActor.name}. `;
+            }
+            if (audienceChoiceActor) {
+                votingDetails += `The audience has voted for ${audienceChoiceActor.name}. `;
+            }
+            if (winnerActor) {
+                votingDetails += `Based on the voting results, ${winnerActor.name} will be the ultimate winner. `;
+            }
+            
+            votingDetails += `The player's choice is revealed first and then suspense builds as Cupid reveals the audience's and his own votes, dramatically revealing the ultimate winner. While the player and Cupid cast explicit votes, the audience vote is more distributed, so there can never be an actual "tie"; one candidate will always have an edge. The tone is dramatic and emotionally charged.`;
+        
+            return votingDetails;
+        
+        case SkitType.EPILOGUE:
+            const winner = save.gameProgress.winnerId ? save.actors[save.gameProgress.winnerId] : null;
+            const spiceLevel = save.spice || 1;
+            const spiceGuidance = spiceLevel === 1 
+                ? 'The scene should be sweet, romantic, and flirty, but remain appropriate and PG-13.'
+                : spiceLevel === 2
+                    ? 'The scene can be suggestive and sensual, showing deeper physical intimacy while still being tasteful.'
+                    : 'The scene can be passionate and explicit, exploring the full depth of their physical and emotional connection.';
+            
+            const winnerContext = winner 
+                ? `This epilogue takes place months or even years after the gameshow ended. ${player.name} and ${winner.name}, the winning match, are together in a slice-of-life moment. The scene depicts their life together now—how their relationship has evolved, grown, and deepened since the show. ${spiceGuidance} Other finalists are not present in this scene, but could be referenced in passing if it makes sense that their lives have become interwoven with ${player.name} and ${winner.name}'s.`
+                : `This epilogue takes place after the gameshow. The scene depicts a slice-of-life moment.`;
+            
+            return winnerContext;
         
         default:
             return 'An event is unfolding in the gameshow.';
@@ -201,7 +239,16 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 `instead developing content within the existing rules. ` +
                 `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
                 `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
-                ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Special emotion and movement tags continue to use English (these are invisible to the user).` : '')
+                (() => {
+                    const spiceLevel = stage.saveData.spice ?? 2;
+                    const spiceInstructions = {
+                        1: '\n\nSoulMatcher has a TV14 Rating: Romantic and flirty content is encouraged. Include playful banter, romantic tension, chemistry, and light sensual themes. Avoid overtly sexual content but embrace the romantic and seductive atmosphere of a dating show.',
+                        2: '\n\nSoulMatcher has a MA17 Rating: Suggestive content is appropriate. Include flirtation, romantic and sexual tension, suggestive dialogue, innuendo, and moderate sensual themes. Implied intimacy and steamy situations are welcome.',
+                        3: '\n\nSoulMatcher is an Unrated Adults-Only Show: Explicit and risqué content is encouraged. Scenes may overtly feature mature themes, sensual descriptions, passionate encounters, and more taboo adult situations when it suits character dynamics and context. Embrace the full spectrum of adult sexual content.'
+                    };
+                    return spiceInstructions[spiceLevel as keyof typeof spiceInstructions] || spiceInstructions[2];
+                })() +
+                ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Special emotion tags continue to use English (these are invisible to the user).` : '')
             );
 
             const response = await stage.generator.textGen({

@@ -8,7 +8,6 @@ import { Emotion } from "../Emotion";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { LastPage, PlayArrow, Send } from "@mui/icons-material";
 import { CandidateSelectionUI } from "./CandidateSelectionUI";
-import { FinalResultsScreen } from "./FinalResultsScreen";
 import { useCallback } from "react";
 
 interface StudioScreenProps {
@@ -20,7 +19,6 @@ interface StudioScreenProps {
 // This screen represents the main game screen in a gameshow studio setting. The player will make some basic choices that lead to different skits and direct the flow of the game.
 export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVerticalLayout }) => {
     const [showSelectionUI, setShowSelectionUI] = useState(false);
-    const [showResultsUI, setShowResultsUI] = useState(false);
     const [isGeneratingNextSkit, setIsGeneratingNextSkit] = useState(false);
     const [finalVoteResult, setFinalVoteResult] = useState<{
         hostChoiceId: string;
@@ -33,8 +31,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         audienceChoiceId: string;
         rawResponse: string;
     }> | null>(null);
-    const [isPreparingResultsSkit, setIsPreparingResultsSkit] = useState(false);
-    const resultsSkitPromiseRef = useRef<Promise<void> | null>(null);
 
     const currentPhase = stage().getCurrentPhase();
     
@@ -181,6 +177,17 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     locationImageUrl: ''
                 });
 
+            case GamePhase.EPILOGUE:
+                const winnerId = stage().saveData.gameProgress.winnerId;
+                const winner = winnerId ? stage().saveData.actors[winnerId] : null;
+                return new Skit({
+                    skitType: SkitType.EPILOGUE,
+                    script: [],
+                    presentActors: winner ? [winner.id] : [],
+                    locationDescription: "An intimate, comfortable space where the couple shares their life together. The setting reflects their relationship and the passage of time since the gameshow.",
+                    locationImageUrl: ''
+                });
+
             default:
                 return new Skit({
                     skitType: SkitType.GAME_INTRO,
@@ -311,34 +318,12 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             if (!finalVotePromiseRef.current && !finalVoteResult) {
                 getOrStartFinalVoteAssessment();
             }
-        } else if (currentPhase !== GamePhase.FINAL_VOTING && !showResultsUI) {
+        } else if (currentPhase !== GamePhase.FINAL_VOTING) {
             finalVotePromiseRef.current = null;
             setFinalVoteResult(null);
             setIsAwaitingFinalVotes(false);
         }
-    }, [currentPhase, finalVoteResult, showResultsUI, showSelectionUI]);
-
-    useEffect(() => {
-        if (!showResultsUI || resultsSkitPromiseRef.current) {
-            return;
-        }
-
-        const generateResultsSkit = async () => {
-            setIsPreparingResultsSkit(true);
-            try {
-                const nextSkit = generateNextSkit();
-                const scriptResult = await generateSkitScript(nextSkit, stage());
-                nextSkit.script.push(...scriptResult.entries);
-                stage().addSkit(nextSkit);
-                stage().saveGame();
-                console.log('Generated results skit after final voting');
-            } finally {
-                setIsPreparingResultsSkit(false);
-            }
-        };
-
-        resultsSkitPromiseRef.current = generateResultsSkit();
-    }, [showResultsUI]);
+    }, [currentPhase, finalVoteResult, showSelectionUI]);
 
     // Handler for when the submit button is pressed in NovelVisualizer. At this point, if the user had input, it has been spliced into the script.
     const handleSubmit = async (input: string, skit: any, index: number) => {
@@ -360,6 +345,28 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 console.log(`Phase ${currentPhase} requires player input - showing selection UI`);
                 setShowSelectionUI(true);
                 return skit; // Reconsider this.
+            }
+            
+            // After GAME_COMPLETE results skit, advance to EPILOGUE
+            if (currentPhase === GamePhase.GAME_COMPLETE) {
+                console.log('Results skit complete - advancing to epilogue');
+                stage().advancePhase(GamePhase.EPILOGUE);
+                const epilogueSkit = generateNextSkit();
+                const scriptResult = await generateSkitScript(epilogueSkit, stage());
+                epilogueSkit.script.push(...scriptResult.entries);
+                stage().addSkit(epilogueSkit);
+                stage().saveGame();
+                console.log('Generated epilogue skit');
+                return epilogueSkit;
+            }
+            
+            // EPILOGUE is an unending phase - continue generating content indefinitely
+            if (currentPhase === GamePhase.EPILOGUE) {
+                console.log('Epilogue continues - generating more content for the ongoing scene');
+                const nextEntries = await generateSkitScript(skit as Skit, stage());
+                (skit as Skit).script.push(...nextEntries.entries);
+                stage().saveGame();
+                return skit;
             }
             
             // Generate the next skit and generate its initial script before returning
@@ -420,6 +427,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             // Save the player's final choice
             stage().setPlayerChoice(selectedIds[0]);
             setIsAwaitingFinalVotes(true);
+            setShowSelectionUI(false);
+            setIsGeneratingNextSkit(true);
 
             try {
                 const voteResult = finalVoteResult || await getOrStartFinalVoteAssessment();
@@ -446,11 +455,19 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 if (winnerId) {
                     stage().setWinner(winnerId);
                 }
+                
+                // Advance to GAME_COMPLETE and generate results skit
+                stage().advancePhase(GamePhase.GAME_COMPLETE);
+                const resultsSkit = generateNextSkit();
+                const scriptResult = await generateSkitScript(resultsSkit, stage());
+                resultsSkit.script.push(...scriptResult.entries);
+                stage().addSkit(resultsSkit);
+                stage().saveGame();
+                console.log('Generated results skit after final voting');
             } finally {
                 setIsAwaitingFinalVotes(false);
+                setIsGeneratingNextSkit(false);
             }
-            setShowSelectionUI(false);
-            setShowResultsUI(true);
             return;
         }
     };
@@ -460,6 +477,32 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     if (skit) {
         console.log("Current skit for StudioScreen:", skit);
     }
+
+    // Get phase-appropriate title for the ribbon
+    const getPhaseTitle = (phase: GamePhase): string => {
+        switch (phase) {
+            case GamePhase.GAME_INTRO:
+                return "Welcome to SoulMatcher";
+            case GamePhase.CONTESTANT_INTRO:
+                return "Meet the Contestants";
+            case GamePhase.GROUP_INTERVIEW:
+                return "Group Interview";
+            case GamePhase.FINALIST_SELECTION:
+                return "Choose Your Finalists";
+            case GamePhase.LOSER_INTERVIEW:
+                return "Exit Interviews";
+            case GamePhase.FINALIST_ONE_ON_ONE:
+                return "One-on-One Time";
+            case GamePhase.FINAL_VOTING:
+                return "Final Decision";
+            case GamePhase.GAME_COMPLETE:
+                return "The Results Are In";
+            case GamePhase.EPILOGUE:
+                return "Ever After";
+            default:
+                return "SoulMatcher";
+        }
+    };
 
     // Show selection UI for finalist selection and final voting phases
     if (showSelectionUI) {
@@ -487,27 +530,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 isVerticalLayout={isVerticalLayout}
                 isProcessing={currentPhase === GamePhase.FINAL_VOTING && isAwaitingFinalVotes}
                 processingLabel="Cupid and the audience are casting their votes..."
-            />
-        );
-    }
-
-    if (showResultsUI) {
-        const finalists = stage().saveData.gameProgress.finalistIds
-            .map(id => stage().saveData.actors[id])
-            .filter(actor => actor) as Actor[];
-
-        return (
-            <FinalResultsScreen
-                finalists={finalists}
-                playerChoiceId={stage().saveData.gameProgress.playerChoice}
-                hostChoiceId={stage().saveData.gameProgress.hostChoice}
-                audienceChoiceId={stage().saveData.gameProgress.audienceChoice}
-                winnerId={stage().saveData.gameProgress.winnerId}
-                isReady={!isPreparingResultsSkit}
-                onAccept={() => {
-                    setShowResultsUI(false);
-                }}
-                isVerticalLayout={isVerticalLayout}
             />
         );
     }
@@ -541,8 +563,39 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         );
     }
 
-    return (<div>
-        {(skit && skit.script) ? <NovelVisualizer
+    return (
+        <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+            {/* Title Ribbon */}
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: 16,
+                    left: 16,
+                    zIndex: 1000,
+                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                    backdropFilter: 'blur(4px)',
+                    padding: '8px 24px',
+                    borderRadius: '20px',
+                    border: '2px solid #FFD700',
+                    boxShadow: '0 4px 12px rgba(255, 215, 0, 0.3)',
+                }}
+            >
+                <Typography
+                    variant="h6"
+                    sx={{
+                        color: '#FFD700',
+                        fontWeight: 'bold',
+                        fontSize: '1.1rem',
+                        letterSpacing: '0.5px',
+                        textTransform: 'uppercase',
+                        textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                    }}
+                >
+                    {getPhaseTitle(currentPhase)}
+                </Typography>
+            </Box>
+            
+            {(skit && skit.script) ? <NovelVisualizer
             script={skit}
             getBackgroundImageUrl={(script, index: number) => {return (script as Skit).locationImageUrl || ''}}
             isVerticalLayout={isVerticalLayout}
@@ -602,6 +655,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 );
             }}
         /> : <></>}
-    </div>
+        </Box>
     );
 }

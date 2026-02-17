@@ -68,7 +68,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
                 if (!isTransparent) {
                     console.log(`Discarding emotion pack due to non-transparent pixels: ${pack.expressions['neutral']}`);
                     return false;
-                } else if (imgBitmap.width < 600 || imgBitmap.height < 600) {
+                } else if (imgBitmap.width < 400 || imgBitmap.height < 600) {
                     console.log(`Discarding emotion pack due to small image size: ${pack.expressions['neutral']}`);
                     return false;
                 }

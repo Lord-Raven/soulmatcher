@@ -17,7 +17,8 @@ export enum GamePhase {
     LOSER_INTERVIEW = 'LOSER_INTERVIEW',                 // Losers offer their parting words
     FINALIST_ONE_ON_ONE = 'FINALIST_ONE_ON_ONE',         // One-on-one skits with finalists
     FINAL_VOTING = 'FINAL_VOTING',                       // Player, host, and audience vote
-    GAME_COMPLETE = 'GAME_COMPLETE'                      // Game finished
+    GAME_COMPLETE = 'GAME_COMPLETE',                     // Game finished
+    EPILOGUE = 'EPILOGUE'                                // Unending slice-of-life epilogue with winner
 }
 
 export type GameProgressState = {
@@ -42,6 +43,7 @@ type ChatStateType = {
     disableTextToSpeech: boolean;
     language: string;
     bannedTags: string[];
+    spice?: number;  // 1-3 scale for content rating (1=flirty, 2=suggestive, 3=explicit)
     gameProgress: GameProgressState;
 }
 
@@ -137,9 +139,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Host actor:
         const hostActor = new Actor({
             type: 'HOST',
-            name: this.primaryCharacter.name || 'Host',
-            description: this.primaryCharacter.description || '',
-            profile: this.primaryCharacter.personality || '',
+            name: 'Cupid', // this.primaryCharacter.name || 'Host',
+            description: `The athletic-yet-spritely Roman god of love, Cupid. He wears a classic toga, carries a microphone, and exudes charm and charisma. He flits upon angelic wings or lounges in ridiculously languid poses—never simply standing.`, // this.primaryCharacter.description || '',
+            profile: `The Roman god of love, mischief, and matchmaking. He delights in orchestrating romantic encounters and spreading affection among mortals. Today, he's hosting reality television, tomorrow, maybe he'll start a war.`, // this.primaryCharacter.personality || '',
             themeColor: '#FF69B4',
             themeFontFamily: 'Arial, sans-serif',
         });

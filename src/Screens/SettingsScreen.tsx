@@ -17,6 +17,7 @@ interface SettingsData {
     disableTextToSpeech: boolean;
     tagToggles: { [key: string]: boolean };
     language: string;
+    spice: number;  // 1-3 scale for content rating
 }
 
 export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onConfirm, isNewGame = false }) => {
@@ -68,6 +69,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         playerDescription: stage().getPlayerActor()?.description || stage().primaryUser?.chatProfile ||'An enimgmatic contestant on Soulmatcher!',
         disableTextToSpeech: stage().saveData.disableTextToSpeech ?? false,
         language: stage().saveData.language || 'English',
+        spice: stage().saveData.spice ?? 2,  // Default to middle of scale
         // Tag toggles; disabling these can be used to filter undesired content. Load from save array, if one. Otherwise, default to true.
         tagToggles: stage().saveData.bannedTags ? Object.fromEntries(
             Object.keys(tagMap).map(key => [
@@ -85,6 +87,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         stage().saveData.bannedTags = Object.keys(settings.tagToggles).filter(key => !settings.tagToggles[key]).map(key => tagMap[key] ? tagMap[key] : [key]).flat();
         stage().saveData.disableTextToSpeech = settings.disableTextToSpeech;
         stage().saveData.language = settings.language;
+        stage().saveData.spice = settings.spice;
         
         if (isNewGame) {
             console.log('Starting new game with settings');
@@ -436,6 +439,53 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
+                                        </div>
+                                    </div>
+
+                                    {/* Spice Level Slider */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                        <label
+                                            style={{
+                                                color: 'rgba(255, 255, 255, 0.8)',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                            }}
+                                        >
+                                            Content Rating
+                                        </label>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="3"
+                                                value={settings.spice}
+                                                onChange={(e) => setSettings(prev => ({ ...prev, spice: parseInt(e.target.value) }))}
+                                                style={{
+                                                    width: '100%',
+                                                    accentColor: '#FF1493',
+                                                    cursor: 'pointer',
+                                                }}
+                                            />
+                                            <div style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                fontSize: '11px',
+                                                color: 'rgba(255, 255, 255, 0.5)',
+                                                paddingTop: '4px',
+                                            }}>
+                                                <span style={{ 
+                                                    color: settings.spice === 1 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
+                                                    fontWeight: settings.spice === 1 ? 'bold' : 'normal',
+                                                }}>Flirty</span>
+                                                <span style={{ 
+                                                    color: settings.spice === 2 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
+                                                    fontWeight: settings.spice === 2 ? 'bold' : 'normal',
+                                                }}>Suggestive</span>
+                                                <span style={{ 
+                                                    color: settings.spice === 3 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
+                                                    fontWeight: settings.spice === 3 ? 'bold' : 'normal',
+                                                }}>Explicit</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

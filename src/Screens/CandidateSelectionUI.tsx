@@ -5,6 +5,7 @@ import { CheckCircle } from '@mui/icons-material';
 import { Actor } from '../Actor';
 import { Emotion } from '../Emotion';
 import { Button } from './UIComponents';
+import { BlurredBackground } from '@lord-raven/novel-visualizer';
 
 interface CandidateSelectionUIProps {
     candidates: Actor[];
@@ -63,25 +64,29 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
     const gridColumnTemplate = `repeat(${candidates.length}, minmax(0, 1fr))`;
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
+        <BlurredBackground
+            imageUrl="https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png"
+            overlay="linear-gradient(135deg, rgba(26, 10, 46, 0.7) 0%, rgba(36, 7, 65, 0.8) 100%)"
         >
-            <Box
-                sx={{
-                    padding: isVerticalLayout ? '16px' : '32px',
-                    minHeight: '100vh',
-                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                    gap: 3,
-                    position: 'relative',
-                }}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
             >
+                <Box
+                    sx={{
+                        padding: isVerticalLayout ? '16px' : '32px',
+                        minHeight: '100vh',
+                        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        alignItems: 'center',
+                        gap: 3,
+                        position: 'relative',
+                    }}
+                >
                 {isProcessing && (
                     <Box
                         sx={{
@@ -323,7 +328,8 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                         {maxSelections === 1 ? 'Choose This Person' : 'Continue with These Finalists'}
                     </Button>
                 </motion.div>
-            </Box>
-        </motion.div>
+                </Box>
+            </motion.div>
+        </BlurredBackground>
     );
 };

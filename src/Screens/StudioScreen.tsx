@@ -1,14 +1,15 @@
 import { Stage, GamePhase } from "../Stage";
-import { Skit, SkitType, generateSkitScript } from "../Skit";
+import { Skit, SkitType, buildScriptLog, generateSkitScript } from "../Skit";
 import { FC, useEffect, useRef, useState } from "react";
 import { ScreenType } from "./BaseScreen";
 import { Actor, findBestNameMatch } from "../Actor";
 import { NovelVisualizer } from "@lord-raven/novel-visualizer";
 import { Emotion } from "../Emotion";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { LastPage, PlayArrow } from "@mui/icons-material";
+import { LastPage, PlayArrow, Send } from "@mui/icons-material";
 import { CandidateSelectionUI } from "./CandidateSelectionUI";
 import { FinalResultsScreen } from "./FinalResultsScreen";
+import { useCallback } from "react";
 
 interface StudioScreenProps {
     stage: () => Stage;
@@ -39,6 +40,19 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     
     // This is a physical description of the studio space for SoulMatcher, a dating gameshow on which the player is a contestant.
     const studioDescription = "The studio is a vibrant and dynamic space, designed to evoke the excitement and glamour of a high-stakes dating gameshow. The stage is set with bright, colorful lights that create an energetic atmosphere, while large LED screens display dynamic backgrounds that change with each skit. The audience area is filled with enthusiastic spectators, their cheers and reactions adding to the lively ambiance. The contestant's podium is sleek and modern, equipped with interactive elements that allow the player to make choices that influence the flow of the game. Overall, the studio is a visually stimulating environment that immerses the player in the thrilling world of SoulMatcher.";
+
+    // Handle ESC key to open menu
+    const handleEscapeKey = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            setScreenType(ScreenType.MENU);
+        }
+    }, [setScreenType]);
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleEscapeKey);
+        return () => window.removeEventListener('keydown', handleEscapeKey);
+    }, [handleEscapeKey]);
 
     // Generate the next skit based on the current game phase
     const generateNextSkit = (): Skit => {
@@ -118,7 +132,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         script: [],
                         presentActors: nextLoserPair.map(a => a.id),
                         locationDescription: studioDescription,
-                        locationImageUrl: 'https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png'
+                        locationImageUrl: ''
                     });
                 }
                 // Fallthrough if no losers found (shouldn't happen)
@@ -184,15 +198,25 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         const candidateList = candidates.map(candidate => {
             return `- ${candidate.name}: ${candidate.profile}`;
         }).join('\n');
+        const finalistOneOnOneScripts = candidates.map(candidate => {
+            const matchingSkits = stage().getSkitsInOrder().filter(skit =>
+                skit.skitType === SkitType.FINALIST_ONE_ON_ONE &&
+                skit.presentActors?.includes(candidate.id)
+            );
+            const latestSkit = matchingSkits[matchingSkits.length - 1];
+            const scriptLog = latestSkit ? buildScriptLog(stage(), latestSkit) : '(No one-on-one skit found)';
+            return `\n${candidate.name} One-on-One:\n${scriptLog}`;
+        }).join('\n\n');
 
         return `{{messages}}You are preparing structured, parseable voting results for the final match decision in a dating gameshow visual novel.` +
             `\n\nContext:` +
             `\nPlayer: ${player.name}` +
             `\nCupid (Host): ${host.name}` +
+            `\nFinalist One-on-One Scripts:${finalistOneOnOneScripts}` +
             `\n\nFinalist Candidates:` +
             `\n${candidateList}` +
             `\n\nTask:` +
-            `\nDecide who Cupid votes for and who the audience votes for. Each vote must be one of the finalist candidate names listed above.` +
+            `\nDecide who Cupid votes for and who the audience votes for. Bear in mind that Cupid's vote is often capricious or entertaining while the audience's vote generally reflects popular opinion. Each vote must be one of the finalist candidate names listed above.` +
             `\n\nResponse Format (strict):` +
             `\nCUPID_VOTE: <candidate name>` +
             `\nAUDIENCE_VOTE: <candidate name>` +
@@ -258,7 +282,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 prompt,
                 min_tokens: 5,
                 max_tokens: 80,
-                include_history: false,
+                include_history: true,
                 stop: ['#END']
             });
             const responseText = response?.result || '';
@@ -528,20 +552,19 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             getActorImageUrl={(actor, script, index: number) => {return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
             onSubmitInput={handleSubmit}
             getSubmitButtonConfig={(script, index, inputText) => {
-                const scriptLength = (script as Skit).script.length;
                 const endScene = (script as Skit).script[index]?.endScene || false;
                 return {
-                    label: endScene ? 'End' : (scriptLength > 0 ? 'Continue' : 'Start'),
+                    label: (inputText.trim().length > 0 ? 'Send' : (endScene ? 'Next Round' : 'Continue')),
                     enabled: true,
-                    colorScheme: endScene ? 'error' : 'primary',
-                    icon: endScene ? <LastPage/> : <PlayArrow/>
+                    colorScheme: (inputText.trim().length > 0 ? 'primary' : (endScene ? 'error' : 'primary')),
+                    icon: (inputText.trim().length > 0 ? <Send/> : (endScene ? <LastPage/> : <PlayArrow/>))
                 }
             }}
             enableAudio={!stage().saveData.disableTextToSpeech}
             enableGhostSpeakers={true}
             enableTalkingAnimation={true}
             renderActorHoverInfo={(actor) => {
-                if (!actor) return null;
+                if (!actor || actor.id === stage().getPlayerActor().id) return null;
                 const typedActor = actor as Actor;
                 return (
                     <Box

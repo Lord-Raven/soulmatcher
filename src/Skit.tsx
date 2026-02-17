@@ -111,7 +111,7 @@ export class ScriptEntry {
     }
 }
 
-function buildScriptLog(stage: Stage, skit: Skit, additionalEntries: ScriptEntry[] = []): string {
+export function buildScriptLog(stage: Stage, skit: Skit, additionalEntries: ScriptEntry[] = []): string {
         return ((skit.script && skit.script.length > 0) || additionalEntries.length > 0) ?
             [...skit.script, ...additionalEntries].map(e => {
                 // Find the best matching emotion key for this speaker
@@ -196,6 +196,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
+                `\n\n  Pause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
                 `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
                 `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
@@ -208,7 +209,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 min_tokens: 10,
                 max_tokens: 500,
                 include_history: true,
-                stop: []
+                stop: ['[PAUSE]']
             });
             if (response && response.result && response.result.trim().length > 0) {
                 // First, detect and parse any tags that may be embedded in the response.
@@ -371,9 +372,9 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                         return;
                     }
                     
-                    const completionPrompt = `{{messages}}\nYou are analyzing a scene from a dating gameshow visual novel to determine if it has reached a natural conclusion.\n\n` +
+                    const completionPrompt = `{{messages}}\nYou are analyzing a scene from a dating gameshow visual novel to determine if this round of the game has reached a natural conclusion.\n\n` +
                         `Scene Context:\n${getSkitTypePrompt(skit.skitType, stage, skit)}\n\n` +
-                        `Full Scene Script:\n${buildScriptLog(stage, skit, scriptEntries)}\n\n` +
+                        `Script So Far:\n${buildScriptLog(stage, skit, scriptEntries)}\n\n` +
                         `Question: Has this scene fulfilled its narrative purpose and reached a natural conclusion or transition point where the show should move to the next phase?\n\n` +
                         `Respond with exactly one of these terms:\n` +
                         `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose, or hit a clear transition point\n` +
@@ -385,7 +386,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                             prompt: completionPrompt,
                             min_tokens: 1,
                             max_tokens: 20,
-                            include_history: false,
+                            include_history: true,
                             stop: ['###'] // Don't really want reasoning; gaslighting the LLM into holding off on explaining until after the stopping string.
                         });
                         

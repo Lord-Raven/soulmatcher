@@ -482,13 +482,13 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     const getPhaseTitle = (phase: GamePhase): string => {
         switch (phase) {
             case GamePhase.GAME_INTRO:
-                return "Welcome to SoulMatcher";
+                return "Introduction";
             case GamePhase.CONTESTANT_INTRO:
                 return "Meet the Contestants";
             case GamePhase.GROUP_INTERVIEW:
                 return "Group Interview";
             case GamePhase.FINALIST_SELECTION:
-                return "Choose Your Finalists";
+                return "Finalist Selection";
             case GamePhase.LOSER_INTERVIEW:
                 return "Exit Interviews";
             case GamePhase.FINALIST_ONE_ON_ONE:
@@ -496,7 +496,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             case GamePhase.FINAL_VOTING:
                 return "Final Decision";
             case GamePhase.GAME_COMPLETE:
-                return "The Results Are In";
+                return "The Reveal";
             case GamePhase.EPILOGUE:
                 return "Ever After";
             default:
@@ -513,8 +513,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         const maxSelections = currentPhase === GamePhase.FINALIST_SELECTION ? 3 : 1;
         
         const scenarioTitle = currentPhase === GamePhase.FINALIST_SELECTION 
-            ? "Choose Your Finalists"
-            : "Make Your Final Choice";
+            ? "Finalist Selection"
+            : "Final Decision";
         
         const scenarioDescription = currentPhase === GamePhase.FINALIST_SELECTION
             ? "You've met all the candidates. Now it's time to choose the three people you'd like to get to know better in one-on-one interviews."
@@ -602,7 +602,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             actors={stage().saveData.actors}
             playerActorId={stage().getPlayerActor().id}
             getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
-            getActorImageUrl={(actor, script, index: number) => {console.log(`${actor.name} url: ${ (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)] }`); return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
+            getActorImageUrl={(actor, script, index: number) => {console.log(`${actor.name}`); console.log(actor.emotionPack); return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
             onSubmitInput={handleSubmit}
             getSubmitButtonConfig={(script, index, inputText) => {
                 const endScene = (script as Skit).script[index]?.endScene || false;

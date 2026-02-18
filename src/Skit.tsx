@@ -83,9 +83,11 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
                     ? 'The scene can be suggestive and sensual, showing deeper physical intimacy while still being tasteful.'
                     : 'The scene can be passionate and explicit, exploring the full depth of their physical and emotional connection.';
             
-            const winnerContext = winner 
-                ? `This epilogue takes place months or even years after the gameshow ended. ${player.name} and ${winner.name}, the winning match, are together in a slice-of-life moment. The scene depicts their life together now—how their relationship has evolved, grown, and deepened since the show. ${spiceGuidance} Other finalists are not present in this scene, but could be referenced in passing if it makes sense that their lives have become interwoven with ${player.name} and ${winner.name}'s.`
-                : `This epilogue takes place after the gameshow. The scene depicts a slice-of-life moment.`;
+            const winnerContext = (winner ? 
+                    `This epilogue takes place months or even years after the gameshow ended. ${player.name} and ${winner.name}, the winning match, are together in a slice-of-life moment. ` : 
+                    `This epilogue takes place after the gameshow. The scene depicts ${player.name} and the winner in a slice-of-life moment. `) +
+                `The scene depicts their permanently bonded life together—perhaps alluding to how their relationship has evolved, grown, or deepened since the show. ${spiceGuidance} ` +
+                `Other finalists could make an appearance or be referenced in passing if it makes sense that their lives have become interwoven with ${player.name} and ${winner.name}'s in some interesting way.`;
             
             return winnerContext;
         

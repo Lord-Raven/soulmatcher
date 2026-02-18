@@ -147,7 +147,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             emotionPack: this.primaryCharacter.partial_extensions?.chub?.expressions
         });
 
+        console.log('Host actor emotion pack:');
         console.log(hostActor.emotionPack);
+        console.log(this.primaryCharacter.partial_extensions);
 
         this.saveData.actors[hostActor.id] = hostActor;
 

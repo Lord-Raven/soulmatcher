@@ -428,7 +428,16 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     message = message.replace(/\[([^\]]+)\]/g, '').trim();
                     
                     const tagData = combinedEmotionTags[index];
-                    const entry: ScriptEntry = { speakerId: speaker?.id || '', message, speechUrl: '', actorEmotions: tagData.emotions  };
+                    // Convert emotion tags from actor names to actor IDs
+                    const actorEmotionsById: {[key: string]: Emotion} = {};
+                    for (const [actorName, emotion] of Object.entries(tagData.emotions)) {
+                        const actor = findBestNameMatch(actorName, Object.values(stage.saveData.actors));
+                        if (actor) {
+                            actorEmotionsById[actor.id] = emotion;
+                        }
+                    }
+                    
+                    const entry: ScriptEntry = { speakerId: speaker?.id || '', message, speechUrl: '', actorEmotions: actorEmotionsById  };
                     
                     return entry;
                 });

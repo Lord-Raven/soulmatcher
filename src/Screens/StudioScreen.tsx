@@ -616,12 +616,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
             getActorImageUrl={(actor, script, index: number) => {
                 const emotion = determineEmotion((actor as Actor).id, script as Skit, index);
-                if (emotion !== Emotion.neutral) {
-                    console.log(`Determined emotion for actor ${actor.name} at script index ${index}: ${emotion}`);
-                }
-                if ((actor as Actor).emotionPack && emotion && (actor as Actor).emotionPack[emotion]) {
-                    console.log(`Using emotion image for actor ${actor.name} at script index ${index}: ${(actor as Actor).emotionPack[emotion]}`);
-                }
                 return (actor as Actor).emotionPack[emotion];
             }}
             onSubmitInput={handleSubmit}

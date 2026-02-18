@@ -319,6 +319,8 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
 
                 // Strip double-asterisks. TODO: Remove this once other model issue is resolved.
                 text = text.replace(/\*\*/g, '');
+                // Replace directional quotation marks:
+                text = text.replace(/[“”]/g, '"').replace(/[‘’]/g, '\'');
 
                 // Remove any initial "System:" prefix
                 if (text.toLowerCase().startsWith('system:')) {

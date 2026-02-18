@@ -115,7 +115,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             case GamePhase.LOSER_INTERVIEW:
                 const nextLoserPair = stage().getNextLoserPair();
                 if (nextLoserPair && nextLoserPair.length > 0) {
-                    // Mark these losers as interviewed
                     stage().markLosersInterviewed(nextLoserPair.map(a => a.id));
                     
                     // Check if all losers have been interviewed
@@ -474,31 +473,32 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     
     let skit = stage().getCurrentSkit();
 
-    // Get phase-appropriate title for the ribbon
-    const getPhaseTitle = (phase: GamePhase): string => {
-        switch (phase) {
-            case GamePhase.GAME_INTRO:
+    const getSkitTitle = (currentSkit: Skit | null): string | null => {
+        if (!currentSkit) {
+            return null;
+        }
+
+        switch (currentSkit.skitType) {
+            case SkitType.GAME_INTRO:
                 return "Introduction";
-            case GamePhase.CONTESTANT_INTRO:
+            case SkitType.CONTESTANT_INTRO:
                 return "Meet the Contestants";
-            case GamePhase.GROUP_INTERVIEW:
+            case SkitType.GROUP_INTERVIEW:
                 return "Group Interview";
-            case GamePhase.FINALIST_SELECTION:
-                return "Finalist Selection";
-            case GamePhase.LOSER_INTERVIEW:
+            case SkitType.LOSER_INTERVIEW:
                 return "Exit Interviews";
-            case GamePhase.FINALIST_ONE_ON_ONE:
+            case SkitType.FINALIST_ONE_ON_ONE:
                 return "One-on-One Time";
-            case GamePhase.FINAL_VOTING:
-                return "Final Decision";
-            case GamePhase.GAME_COMPLETE:
+            case SkitType.RESULTS:
                 return "The Reveal";
-            case GamePhase.EPILOGUE:
+            case SkitType.EPILOGUE:
                 return "Ever After";
             default:
-                return "SoulMatcher";
+                return null;
         }
     };
+
+    const bannerTitle = getSkitTitle(skit);
 
     // Show selection UI for finalist selection and final voting phases
     if (showSelectionUI) {
@@ -587,7 +587,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                     }}
                 >
-                    {getPhaseTitle(currentPhase)}
+                    {bannerTitle}
                 </Typography>
             </Box>
             

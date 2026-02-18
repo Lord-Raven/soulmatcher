@@ -87,7 +87,7 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
                     `This epilogue takes place months or even years after the gameshow ended. ${player.name} and ${winner.name}, the winning match, are together in a slice-of-life moment. ` : 
                     `This epilogue takes place after the gameshow. The scene depicts ${player.name} and the winner in a slice-of-life moment. `) +
                 `The scene depicts their permanently bonded life together—perhaps alluding to how their relationship has evolved, grown, or deepened since the show. ${spiceGuidance} ` +
-                `Other finalists could make an appearance or be referenced in passing if it makes sense that their lives have become interwoven with ${player.name} and ${winner.name}'s in some interesting way.`;
+                `Other finalists could make an appearance or be referenced in passing if it makes sense that their lives have become interwoven with ${player.name} and the winner's in some interesting way, if it makes sense.`;
             
             return winnerContext;
         

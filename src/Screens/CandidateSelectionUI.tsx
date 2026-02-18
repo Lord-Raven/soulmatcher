@@ -310,8 +310,6 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
                     style={{
-                        marginTop: 'auto',
-                        marginBottom: isVerticalLayout ? 2 : 4,
                         pointerEvents: isProcessing ? 'none' : 'auto',
                     }}
                 >

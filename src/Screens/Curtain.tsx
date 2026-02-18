@@ -17,7 +17,7 @@ interface CurtainProps {
     children?: ReactNode;
 }
 
-const CURTAIN_IMAGE = 'https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/3633b3c0-8eba-4621-8ab1-02ab06205d28.png';
+const CURTAIN_IMAGE = 'https://avatars.charhub.io/avatars/uploads/images/gallery/file/06264878-6fb6-4e34-bb06-da19725f22f9/3633b3c0-8eba-4621-8ab1-02ab06205d28.png';
 
 /**
  * Animated curtain component that slides up/down over the background.

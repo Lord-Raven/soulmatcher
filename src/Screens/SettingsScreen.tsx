@@ -49,18 +49,6 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Elf': ['Elf', 'Elven', 'Dark Elf'],
         'Monster': ['Monster', 'Beast', 'Creature', 'Monstergirl'],
         'Original Character': ['Original Character', 'OC', 'Original'],
-        'Tsundere': ['Tsundere'],
-        'Yandere': ['Yandere'],
-        'Virgin': ['Virgin'],
-        'Submissive': ['Submissive', 'Sub'],
-        'Dominant': ['Dominant', 'Dom'],
-        'Sadistic': ['Sadistic', 'Sadism'],
-        'Masochistic': ['Masochistic', 'Masochism'],
-        'BDSM': ['BDSM', 'Bondage', 'Discipline'],
-        'Tomboy': ['Tomboy'],
-        'Femboy': ['Femboy'],
-        'Goth': ['Goth'],
-        'MILF': ['MILF', 'mother', 'mom', 'mommy']
     }
 
     // Load existing settings or use defaults

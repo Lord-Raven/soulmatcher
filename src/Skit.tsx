@@ -100,103 +100,55 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
  * This helps the LLM understand what comes next when deciding if the current scene should end.
  */
 function getUpcomingRoundDescription(stage: Stage): string {
-    const currentPhase = stage.getCurrentPhase();
-    const hostActor = stage.getHostActor();
+    const currentSkitType = stage.getCurrentSkit()?.skitType;
     const playerActor = stage.getPlayerActor();
-    const save = stage.saveData;
-    
-    let nextPhase = currentPhase;
     let nextSkitType: SkitType | null = null;
-    let nextActors: Actor[] = [];
+    let nextContestant: Actor | null = null;
     
-    switch (currentPhase) {
-        case GamePhase.GAME_INTRO:
-            nextPhase = GamePhase.CONTESTANT_INTRO;
+    switch (currentSkitType) {
+        case SkitType.GAME_INTRO:
             nextSkitType = SkitType.CONTESTANT_INTRO;
-            const firstContestant = stage.getNextContestantToIntroduce();
-            if (firstContestant) {
-                nextActors = [firstContestant];
-            }
+            nextContestant = stage.getNextContestantToIntroduce();
             break;
-            
-        case GamePhase.CONTESTANT_INTRO:
-            const nextContestant = stage.getNextContestantToIntroduce();
+        case SkitType.CONTESTANT_INTRO:
+            nextContestant = stage.getNextContestantToIntroduce();
             if (nextContestant) {
                 nextSkitType = SkitType.CONTESTANT_INTRO;
-                nextActors = [nextContestant];
             } else {
-                nextPhase = GamePhase.GROUP_INTERVIEW;
                 nextSkitType = SkitType.GROUP_INTERVIEW;
-                nextActors = stage.getContestantActors();
             }
             break;
-            
-        case GamePhase.GROUP_INTERVIEW:
-            nextPhase = GamePhase.FINALIST_SELECTION;
-            // Note: FINALIST_SELECTION needs player input, so we describe it as preparation
+        case SkitType.GROUP_INTERVIEW:
             return `After this scene, the game will move to the finalist selection phase where ${playerActor.name} will choose which contestants advance to the finals.`;
             
-        case GamePhase.FINALIST_SELECTION:
-            nextPhase = GamePhase.LOSER_INTERVIEW;
-            nextSkitType = SkitType.LOSER_INTERVIEW;
-            const nextLoserPair = stage.getNextLoserPair();
-            if (nextLoserPair && nextLoserPair.length > 0) {
-                nextActors = nextLoserPair;
-            }
+        case SkitType.LOSER_INTERVIEW:
+            nextSkitType = SkitType.FINALIST_ONE_ON_ONE;
+            nextContestant = stage.getNextFinalistToInterview();
             break;
             
-        case GamePhase.LOSER_INTERVIEW:
-            const moreLoserPairs = stage.getNextLoserPair();
-            if (moreLoserPairs && moreLoserPairs.length > 0) {
-                nextSkitType = SkitType.LOSER_INTERVIEW;
-                nextActors = moreLoserPairs;
-            } else {
-                nextPhase = GamePhase.FINALIST_ONE_ON_ONE;
+        case SkitType.FINALIST_ONE_ON_ONE:
+            nextContestant = stage.getNextFinalistToInterview();
+            if (nextContestant) {
                 nextSkitType = SkitType.FINALIST_ONE_ON_ONE;
-                const firstFinalist = stage.getNextFinalistToInterview();
-                if (firstFinalist) {
-                    nextActors = [firstFinalist];
-                }
-            }
-            break;
-            
-        case GamePhase.FINALIST_ONE_ON_ONE:
-            const nextFinalist = stage.getNextFinalistToInterview();
-            if (nextFinalist) {
-                nextSkitType = SkitType.FINALIST_ONE_ON_ONE;
-                nextActors = [nextFinalist];
             } else {
-                nextPhase = GamePhase.FINAL_VOTING;
                 nextSkitType = SkitType.RESULTS;
-                nextActors = save.gameProgress.finalistIds.map(id => save.actors[id]).filter(Boolean);
             }
             break;
             
-        case GamePhase.FINAL_VOTING:
-        case GamePhase.GAME_COMPLETE:
-            nextSkitType = SkitType.RESULTS;
-            nextActors = save.gameProgress.finalistIds.map(id => save.actors[id]).filter(Boolean);
-            break;
-            
-        case GamePhase.EPILOGUE:
-            return 'This is the final scene of the game experience.';
+        case SkitType.RESULTS:
+            return 'After the winners are revealed in this scene, the game will move to the epilogue, showing the player\'s life with their chosen soulmate after the show.';
+
+        case SkitType.EPILOGUE:
+            return 'This is an ongoing final scene.';
     }
     
-    if (nextSkitType) {
-        const upcomingPrompt = getSkitTypePrompt(nextSkitType, stage, new Skit({
-            skitType: nextSkitType,
-            script: [],
-            presentActors: nextActors.map(a => a.id),
-            locationDescription: '',
-            locationImageUrl: ''
-        }));
-        
-        const actorNames = nextActors.map(a => a.name).join(', ');
-        const actorLine = actorNames ? ` involving ${actorNames}` : '';
-        
-        return `The upcoming round is a ${nextSkitType.toLowerCase().replace(/_/g, ' ')} scene${actorLine}. Here's the context: ${upcomingPrompt}`;
+    if (nextSkitType == SkitType.CONTESTANT_INTRO && nextContestant) {
+        return `The next round is the introduction of a new contestant:  ${nextContestant.name}.`;
     }
-    
+    if (nextSkitType == SkitType.FINALIST_ONE_ON_ONE && nextContestant) {
+        return `The next round is a private one-on-one moment with ${nextContestant.name}, one of the finalists.`;
+    }
+
     return '';
 }
 
@@ -330,7 +282,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
-                `based upon the Premise and the specified Scene Prompt. Fulfill the goal of the Scene Prompt, or, if the script feels complete, consider setting up for the Upcoming Round.` +
+                `based upon the Premise and the specified Scene Prompt. Work toward fulfilling the goal of the Scene Prompt; if this scene's script already feels complete, consider segueing toward the Upcoming Round (but don't start it yet—it is handled in a future skit).` +
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +

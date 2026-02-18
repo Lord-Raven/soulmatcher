@@ -48,7 +48,6 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Robot': ['Robot', 'Android', 'Cyborg'],
         'Elf': ['Elf', 'Elven', 'Dark Elf'],
         'Monster': ['Monster', 'Beast', 'Creature', 'Monstergirl'],
-        'Original Character': ['Original Character', 'OC', 'Original'],
     }
 
     // Load existing settings or use defaults

@@ -50,16 +50,51 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         return () => window.removeEventListener('keydown', handleEscapeKey);
     }, [handleEscapeKey]);
 
-    // Generate the next skit based on the current game phase
-    const generateNextSkit = (): Skit => {
-        const currentPhase = stage().getCurrentPhase();
+    // Determine the phase that should be active for the next skit.
+    const determineNextPhase = (currentPhase: GamePhase): GamePhase => {
+        switch (currentPhase) {
+            case GamePhase.GAME_INTRO:
+                return GamePhase.CONTESTANT_INTRO;
+
+            case GamePhase.CONTESTANT_INTRO:
+                return stage().allContestantsIntroduced()
+                    ? GamePhase.GROUP_INTERVIEW
+                    : GamePhase.CONTESTANT_INTRO;
+
+            case GamePhase.GROUP_INTERVIEW:
+                return GamePhase.FINALIST_SELECTION;
+
+            case GamePhase.LOSER_INTERVIEW:
+                return stage().allLosersInterviewed()
+                    ? GamePhase.FINALIST_ONE_ON_ONE
+                    : GamePhase.LOSER_INTERVIEW;
+
+            case GamePhase.FINALIST_ONE_ON_ONE:
+                return stage().allFinalistsInterviewed()
+                    ? GamePhase.FINAL_VOTING
+                    : GamePhase.FINALIST_ONE_ON_ONE;
+
+            case GamePhase.FINAL_VOTING:
+                return GamePhase.GAME_COMPLETE;
+
+            case GamePhase.GAME_COMPLETE:
+                return GamePhase.EPILOGUE;
+
+            case GamePhase.EPILOGUE:
+                return GamePhase.EPILOGUE;
+
+            default:
+                return currentPhase;
+        }
+    };
+
+    // Generate a skit for the current game phase (phase must already be set).
+    const generateNextSkit = (phaseOverride?: GamePhase): Skit => {
+        const currentPhase = phaseOverride ?? stage().getCurrentPhase();
         const hostActor = stage().getHostActor();
-        const playerActor = stage().getPlayerActor();
         
         switch (currentPhase) {
             case GamePhase.GAME_INTRO:
-                // Advance to contestant intro phase after this skit completes
-                stage().advancePhase(GamePhase.CONTESTANT_INTRO);
                 return new Skit({
                     skitType: SkitType.GAME_INTRO,
                     script: [],
@@ -72,12 +107,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 const nextContestant = stage().getNextContestantToIntroduce();
                 if (nextContestant) {
                     stage().markContestantIntroduced(nextContestant.id);
-                    
-                    // Check if this is the last contestant
-                    if (stage().allContestantsIntroduced()) {
-                        stage().advancePhase(GamePhase.GROUP_INTERVIEW);
-                    }
-                    
+
                     return new Skit({
                         skitType: SkitType.CONTESTANT_INTRO,
                         script: [],
@@ -86,12 +116,15 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         locationImageUrl: ''
                     });
                 }
-                // Fallthrough if no contestant found (shouldn't happen)
-                stage().advancePhase(GamePhase.GROUP_INTERVIEW);
-                return generateNextSkit();
+                return new Skit({
+                    skitType: SkitType.CONTESTANT_INTRO,
+                    script: [],
+                    presentActors: [hostActor.id],
+                    locationDescription: studioDescription,
+                    locationImageUrl: ''
+                });
 
             case GamePhase.GROUP_INTERVIEW:
-                stage().advancePhase(GamePhase.FINALIST_SELECTION);
                 const allContestants = stage().getContestantActors();
                 return new Skit({
                     skitType: SkitType.GROUP_INTERVIEW,
@@ -116,12 +149,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 const nextLoserPair = stage().getNextLoserPair();
                 if (nextLoserPair && nextLoserPair.length > 0) {
                     stage().markLosersInterviewed(nextLoserPair.map(a => a.id));
-                    
-                    // Check if all losers have been interviewed
-                    if (stage().allLosersInterviewed()) {
-                        stage().advancePhase(GamePhase.FINALIST_ONE_ON_ONE);
-                    }
-                    
+
                     return new Skit({
                         skitType: SkitType.LOSER_INTERVIEW,
                         script: [],
@@ -130,20 +158,19 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         locationImageUrl: ''
                     });
                 }
-                // Fallthrough if no losers found (shouldn't happen)
-                stage().advancePhase(GamePhase.FINALIST_ONE_ON_ONE);
-                return generateNextSkit();
+                return new Skit({
+                    skitType: SkitType.LOSER_INTERVIEW,
+                    script: [],
+                    presentActors: [hostActor.id],
+                    locationDescription: studioDescription,
+                    locationImageUrl: ''
+                });
 
             case GamePhase.FINALIST_ONE_ON_ONE:
                 const nextFinalist = stage().getNextFinalistToInterview();
                 if (nextFinalist) {
                     stage().markFinalistInterviewed(nextFinalist.id);
-                    
-                    // Check if this is the last finalist
-                    if (stage().allFinalistsInterviewed()) {
-                        stage().advancePhase(GamePhase.FINAL_VOTING);
-                    }
-                    
+
                     return new Skit({
                         skitType: SkitType.FINALIST_ONE_ON_ONE,
                         script: [],
@@ -152,13 +179,16 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         locationImageUrl: ''
                     });
                 }
-                // Fallthrough if no finalist found
-                stage().advancePhase(GamePhase.FINAL_VOTING);
-                return generateNextSkit();
+                return new Skit({
+                    skitType: SkitType.FINALIST_ONE_ON_ONE,
+                    script: [],
+                    presentActors: [hostActor.id],
+                    locationDescription: "A cozy, intimate setting with soft lighting and comfortable seating, perfect for getting to know someone better.",
+                    locationImageUrl: ''
+                });
 
             case GamePhase.FINAL_VOTING:
-                // TODO: This phase needs voting logic - will be handled separately
-                stage().advancePhase(GamePhase.GAME_COMPLETE);
+                // Selection UI handles this phase; keep a minimal placeholder skit as a fallback.
                 return new Skit({
                     skitType: SkitType.RESULTS,
                     script: [],
@@ -332,44 +362,30 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         } else if (input.trim() === '' && (skit as Skit).script[index].endScene) {
             console.log('No input and skit complete; proceed to next phase or whatever.');
             const currentPhase = stage().getCurrentPhase();
+            const nextPhase = determineNextPhase(currentPhase);
 
             // Phases that need external UI for player input
             const needsPlayerInput = [
                 GamePhase.FINALIST_SELECTION,
                 GamePhase.FINAL_VOTING
             ];
-            
-            if (needsPlayerInput.includes(currentPhase)) {
+
+            if (needsPlayerInput.includes(nextPhase)) {
+                if (nextPhase !== currentPhase) {
+                    stage().advancePhase(nextPhase);
+                }
                 // Show selection UI instead of generating new skit
-                console.log(`Phase ${currentPhase} requires player input - showing selection UI`);
+                console.log(`Phase ${nextPhase} requires player input - showing selection UI`);
                 setShowSelectionUI(true);
                 return skit; // Reconsider this.
             }
-            
-            // After GAME_COMPLETE results skit, advance to EPILOGUE
-            if (currentPhase === GamePhase.GAME_COMPLETE) {
-                console.log('Results skit complete - advancing to epilogue');
-                stage().advancePhase(GamePhase.EPILOGUE);
-                const epilogueSkit = generateNextSkit();
-                const scriptResult = await generateSkitScript(epilogueSkit, stage());
-                epilogueSkit.script.push(...scriptResult.entries);
-                stage().addSkit(epilogueSkit);
-                stage().saveGame();
-                console.log('Generated epilogue skit');
-                return epilogueSkit;
+
+            if (nextPhase !== currentPhase) {
+                stage().advancePhase(nextPhase);
             }
-            
-            // EPILOGUE is an unending phase - continue generating content indefinitely
-            if (currentPhase === GamePhase.EPILOGUE) {
-                console.log('Epilogue continues - generating more content for the ongoing scene');
-                const nextEntries = await generateSkitScript(skit as Skit, stage());
-                (skit as Skit).script.push(...nextEntries.entries);
-                stage().saveGame();
-                return skit;
-            }
-            
+
             // Generate the next skit and generate its initial script before returning
-            const nextSkit = generateNextSkit();
+            const nextSkit = generateNextSkit(nextPhase);
             const scriptResult = await generateSkitScript(nextSkit, stage());
             nextSkit.script.push(...scriptResult.entries);
             stage().addSkit(nextSkit);

@@ -602,7 +602,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             actors={stage().saveData.actors}
             playerActorId={stage().getPlayerActor().id}
             getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
-            getActorImageUrl={(actor, script, index: number) => {console.log(`${actor.name}`); console.log(actor.emotionPack); return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
+            getActorImageUrl={(actor, script, index: number) => {return (actor as Actor).emotionPack[determineEmotion((actor as Actor).id, script as Skit, index)];}}
             onSubmitInput={handleSubmit}
             getSubmitButtonConfig={(script, index, inputText) => {
                 const endScene = (script as Skit).script[index]?.endScene || false;

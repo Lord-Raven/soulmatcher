@@ -50,7 +50,7 @@ type ChatStateType = {
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
     readonly FETCH_AT_TIME = 20;
-    readonly MAX_PAGES = 50;
+    readonly MAX_PAGES = 30;
     readonly bannedTagsDefault = [
         'FUZZ',
         'child',
@@ -172,7 +172,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 console.log(searchResults);
                 // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:
                 const basicCharacterData = searchResults.data?.nodes.filter((item: string, index: number) => index < this.CONTESTANT_COUNT - reserveActors.length).map((item: any) => item.fullPath) || [];
-                this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
+                if (basicCharacterData.length === 0) {
+                    console.log('No more characters found in search results; resetting to first page.');
+                    this.actorPageNumber = 0; // reset to first page if we run out of results
+                } else {
+                    this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
+                }
                 console.log(basicCharacterData);
 
                 const newActors: Actor[] = await Promise.all(basicCharacterData.map(async (fullPath: string) => {

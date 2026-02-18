@@ -413,18 +413,18 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
 
                 // Run a prompt to detect whether the script has reached a natural conclusion or scene change. Add the promise to the ttsPromises so it runs concurrently.
                 const sceneCompletionPromise = (async () => {
-                    if (!skit.script || skit.script.length === 0) {
-                        // Don't check for completion on the first generation
+                    if (!skit.script || skit.script.length === 0 || skit.skitType === SkitType.EPILOGUE) {
+                        // Don't check for completion on the first generation or during the epilogue
                         return;
                     }
                     
                     const completionPrompt = `{{messages}}\nYou are analyzing a scene from a dating gameshow visual novel to determine if this round of the game has reached a natural conclusion.\n\n` +
                         `Scene Context:\n${getSkitTypePrompt(skit.skitType, stage, skit)}\n\n` +
                         `Script So Far:\n${buildScriptLog(stage, skit, scriptEntries)}\n\n` +
-                        `Question: Has this scene fulfilled its narrative purpose and reached a natural conclusion or transition point where the show should move to the next phase?\n\n` +
+                        `Prompt: Has this scene fulfilled its narrative purpose (outlined by Scene Context) and reached a natural conclusion or transition point where this gameshow is ready to move to the next phase?\n\n` +
                         `Respond with exactly one of these terms:\n` +
-                        `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose, or hit a clear transition point\n` +
-                        `- SCENE_CONTINUES if the scene still has meaningful developments to explore or feels incomplete\n\n` +
+                        `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose (outlined by Scene Context), or hit a good transition point\n` +
+                        `- SCENE_CONTINUES if the scene hasn't fulfilled its purpose (outlined by Scene Context) or feels incomplete\n\n` +
                         `Begin the response with the appropriate term, followed by "###" and a brief explanation of your reasoning.`;
                     
                     try {

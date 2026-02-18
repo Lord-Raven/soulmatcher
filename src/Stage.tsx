@@ -43,7 +43,7 @@ type ChatStateType = {
     disableTextToSpeech: boolean;
     language: string;
     bannedTags: string[];
-    spice?: number;  // 1-3 scale for content rating (1=flirty, 2=suggestive, 3=explicit)
+    spice?: number;  // 1-3 scale for content rating (1=flirty, 2=dirty, 3=explicit)
     gameProgress: GameProgressState;
 }
 
@@ -113,7 +113,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             success: true,
             error: null,
             initState: null,
-            chatState: null,
+            chatState: this.saveData,
         };
     }
 

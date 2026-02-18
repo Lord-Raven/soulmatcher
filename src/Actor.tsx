@@ -178,8 +178,11 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
             `\n\nBackground: This game is a modern dating gameshow hosted by the literal Roman god of love, Cupid. ` +
             `The player of this game, ${stage.getPlayerActor()?.name || 'Player'}, is the primary contestant who will interview multiple candidate contestants and ultimately be matched up with one to be inexorably soul-matched by Cupid. ` +
             `The candidate contestants are generated from content pulled from other sources; they may span time periods or genres, and will require editing to repurpose for this game's setting. ` +
-            `\n\nThe Original Details below describe a character or scenario (${data.name}) to convert into a candidate. This request and response must digest and distill these details to suit the game's narrative scenario, ` +
+            `\n\nThe Original Details below describe a character or scenario (${data.name}) to convert into one of these candidate contestants. ` +
+            `This request and response must digest and distill these details to suit the game's narrative scenario, ` +
             `crafting a candidate contestant who is appropriately single and ready to mingle, but in a way that respects the original source material. ` +
+            (stage.saveData.spice || 1 >= 3 ? `The game is currently set to a "Filthy" content level, so the distillation should angle for suggestive or explicit content if it can be made to suit the character. ` : '') +
+            `\n\n` +
             `The provided Original Details may reference 'Individual X' who was a part of their original background; ` +
             `if Individual X remains relevant to this character, Individual X should be replaced with an appropriate name in the distillation below.\n\n` +
             `Original Details about ${data.name}:\n ${data.personality}\n\n` +

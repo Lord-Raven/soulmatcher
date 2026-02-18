@@ -467,7 +467,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 <span style={{ 
                                                     color: settings.spice === 2 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
                                                     fontWeight: settings.spice === 2 ? 'bold' : 'normal',
-                                                }}>Suggestive</span>
+                                                }}>Dirty</span>
                                                 <span style={{ 
                                                     color: settings.spice === 3 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
                                                     fontWeight: settings.spice === 3 ? 'bold' : 'normal',

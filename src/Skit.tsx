@@ -226,9 +226,8 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     `\n\n` +
                 `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
                 `\n\nPrimary Instruction:\n` +
-                `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene (perhaps joined in medias res)' : 'Extend or conclude the current scene script'} with three to five entries, ` +
-                `based upon the Premise and the specified Scene Prompt. Primarily involve the Present Characters, although Absent Characters may be moved to this location using appropriate tags. ` +
-                `The script should consider characters' stats, relationships, past events, and the station's stats—among other factors—to craft a compelling scene. ` +
+                `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
+                `based upon the Premise and the specified Scene Prompt. ` +
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
@@ -237,10 +236,8 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
                 `\n\n  Pause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
-                `\n\nThis scene is a brief visual novel skit within a video game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
+                `\n\nThis scene is a brief visual novel skit within a game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
-                `As a result, avoid timelines or concrete, countable values throughout the skit, using vague durations or amounts for upcoming events; the game's mechanics may by unable to map directly to what is depicted in the skit, so ambiguity is preferred. ` +
-                `Generally, focus upon interpersonal dynamics, character growth, faction and patient relationships, and the state of the Station, its capabilities, and its inhabitants.` +
                 (() => {
                     const spiceLevel = stage.saveData.spice ?? 2;
                     const spiceInstructions = {
@@ -391,7 +388,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 const ttsPromises = scriptEntries.map(async (entry) => {
                     const actor = stage.saveData.actors[entry.speakerId] || null;
                     // Only TTS if entry.speaker matches an actor from stage().getSave().actors and entry.message includes dialogue in quotes.
-                    if (!actor || !entry.message.includes('"') || stage.saveData.disableTextToSpeech) {
+                    if (!actor || !entry.message.includes('"') || stage.saveData.disableTextToSpeech || !actor.voiceId) {
                         entry.speechUrl = '';
                         return;
                     }

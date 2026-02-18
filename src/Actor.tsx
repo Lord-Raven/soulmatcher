@@ -138,8 +138,9 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         'teen': 'young adult',
         'highschooler': 'young adult',
         'childhood': 'formative years',
+        'childish': 'bratty',
+        'child': 'young adult',
         // Don't bother with these; just set it to the same word so it gets discarded.
-        'child': 'child',
         'toddler': 'toddler',
         'infant': 'infant',
         // Assume that these words are being used in an innocuous way, unless they come back in the distillation.

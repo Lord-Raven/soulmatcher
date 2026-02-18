@@ -1,6 +1,6 @@
 import { Actor, findBestNameMatch } from "./Actor";
 import { Emotion, EMOTION_MAPPING } from "./Emotion";
-import { Stage } from "./Stage";
+import { Stage, GamePhase } from "./Stage";
 
 export enum SkitType {
     GAME_INTRO = 'GAME_INTRO',
@@ -96,8 +96,111 @@ function getSkitTypePrompt(skitType: SkitType, stage: Stage, skit: Skit): string
     }
 }
 
-/**
- * Generate a deterministic ID for a skit based on its type and context.
+/** * Generate a description of the upcoming skit/round based on the current game phase.
+ * This helps the LLM understand what comes next when deciding if the current scene should end.
+ */
+function getUpcomingRoundDescription(stage: Stage): string {
+    const currentPhase = stage.getCurrentPhase();
+    const hostActor = stage.getHostActor();
+    const playerActor = stage.getPlayerActor();
+    const save = stage.saveData;
+    
+    let nextPhase = currentPhase;
+    let nextSkitType: SkitType | null = null;
+    let nextActors: Actor[] = [];
+    
+    switch (currentPhase) {
+        case GamePhase.GAME_INTRO:
+            nextPhase = GamePhase.CONTESTANT_INTRO;
+            nextSkitType = SkitType.CONTESTANT_INTRO;
+            const firstContestant = stage.getNextContestantToIntroduce();
+            if (firstContestant) {
+                nextActors = [firstContestant];
+            }
+            break;
+            
+        case GamePhase.CONTESTANT_INTRO:
+            const nextContestant = stage.getNextContestantToIntroduce();
+            if (nextContestant) {
+                nextSkitType = SkitType.CONTESTANT_INTRO;
+                nextActors = [nextContestant];
+            } else {
+                nextPhase = GamePhase.GROUP_INTERVIEW;
+                nextSkitType = SkitType.GROUP_INTERVIEW;
+                nextActors = stage.getContestantActors();
+            }
+            break;
+            
+        case GamePhase.GROUP_INTERVIEW:
+            nextPhase = GamePhase.FINALIST_SELECTION;
+            // Note: FINALIST_SELECTION needs player input, so we describe it as preparation
+            return `After this scene, the game will move to the finalist selection phase where ${playerActor.name} will choose which contestants advance to the finals.`;
+            
+        case GamePhase.FINALIST_SELECTION:
+            nextPhase = GamePhase.LOSER_INTERVIEW;
+            nextSkitType = SkitType.LOSER_INTERVIEW;
+            const nextLoserPair = stage.getNextLoserPair();
+            if (nextLoserPair && nextLoserPair.length > 0) {
+                nextActors = nextLoserPair;
+            }
+            break;
+            
+        case GamePhase.LOSER_INTERVIEW:
+            const moreLoserPairs = stage.getNextLoserPair();
+            if (moreLoserPairs && moreLoserPairs.length > 0) {
+                nextSkitType = SkitType.LOSER_INTERVIEW;
+                nextActors = moreLoserPairs;
+            } else {
+                nextPhase = GamePhase.FINALIST_ONE_ON_ONE;
+                nextSkitType = SkitType.FINALIST_ONE_ON_ONE;
+                const firstFinalist = stage.getNextFinalistToInterview();
+                if (firstFinalist) {
+                    nextActors = [firstFinalist];
+                }
+            }
+            break;
+            
+        case GamePhase.FINALIST_ONE_ON_ONE:
+            const nextFinalist = stage.getNextFinalistToInterview();
+            if (nextFinalist) {
+                nextSkitType = SkitType.FINALIST_ONE_ON_ONE;
+                nextActors = [nextFinalist];
+            } else {
+                nextPhase = GamePhase.FINAL_VOTING;
+                nextSkitType = SkitType.RESULTS;
+                nextActors = save.gameProgress.finalistIds.map(id => save.actors[id]).filter(Boolean);
+            }
+            break;
+            
+        case GamePhase.FINAL_VOTING:
+        case GamePhase.GAME_COMPLETE:
+            nextSkitType = SkitType.RESULTS;
+            nextActors = save.gameProgress.finalistIds.map(id => save.actors[id]).filter(Boolean);
+            break;
+            
+        case GamePhase.EPILOGUE:
+            return 'This is the final scene of the game experience.';
+    }
+    
+    if (nextSkitType) {
+        const upcomingPrompt = getSkitTypePrompt(nextSkitType, stage, new Skit({
+            skitType: nextSkitType,
+            script: [],
+            presentActors: nextActors.map(a => a.id),
+            locationDescription: '',
+            locationImageUrl: ''
+        }));
+        
+        const actorNames = nextActors.map(a => a.name).join(', ');
+        const actorLine = actorNames ? ` involving ${actorNames}` : '';
+        
+        return `The upcoming round is a ${nextSkitType.toLowerCase().replace(/_/g, ' ')} scene${actorLine}. Here's the context: ${upcomingPrompt}`;
+    }
+    
+    return '';
+}
+
+/** * Generate a deterministic ID for a skit based on its type and context.
  * This ensures each skit has a unique, reproducible ID that represents its exact place in the game.
  */
 export function generateSkitId(skitType: SkitType, contextActorId?: string): string {
@@ -176,7 +279,7 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
     const presentActors = Object.values(save.actors).filter(a => presentActorIds.includes(a.id));
     const absentActors = Object.values(save.actors).filter(a => !presentActorIds.includes(a.id));
 
-
+    const upcomingRound = getUpcomingRoundDescription(stage);
     // Get past skits in chronological order, excluding the current skit
     let pastSkits = stage.getSkitsInOrder().filter(s => s.id !== skit.id);
     // Get the last N skits for history
@@ -187,8 +290,8 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
         `vote on the candidate they think should become ${player.name}'s soulmate, and then Cupid will shoot them both and seal the deal.` +
         `\n\n${player.name}'s profile: ${player.description}` +
         `\n\nCupid's profile: ${host.description}` +
-        
         `\n\nScene Prompt:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
+        `${upcomingRound ? `\n\nUpcoming Round:\n${upcomingRound}` : ''}` +        
         
         ((historyLength > 0 && pastSkits.length) ? 
                 // Include last few skit scripts for context and style reference
@@ -227,14 +330,14 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
-                `based upon the Premise and the specified Scene Prompt. ` +
+                `based upon the Premise and the specified Scene Prompt. Fulfill the goal of the Scene Prompt, or, if the script feels complete, consider setting up for the Upcoming Round.` +
                 `\n\n  Follow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
                 `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
                 `Entries from the player, ${stage.getPlayerActor().name}, are written in first-person, while other entries consistently refer to ${stage.getPlayerActor().name} in second-person; all other characters are referred to in third-person, even in their own entries.` +
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
-                `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using a single-word emotion name. ` +
+                `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
                 `\n\n  Pause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
                 `\n\nThis scene is a brief visual novel skit within a game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules. ` +
@@ -418,12 +521,15 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                         return;
                     }
                     
+                    const upcomingRound = getUpcomingRoundDescription(stage);
+                    
                     const completionPrompt = `{{messages}}\nYou are analyzing a scene from a dating gameshow visual novel to determine if this round of the game has reached a natural conclusion.\n\n` +
                         `Scene Context:\n${getSkitTypePrompt(skit.skitType, stage, skit)}\n\n` +
+                        `${upcomingRound ? `Upcoming Round:\n${upcomingRound}\n\n` : ''}` +
                         `Script So Far:\n${buildScriptLog(stage, skit, scriptEntries)}\n\n` +
-                        `Prompt: Has this scene fulfilled its narrative purpose (outlined by Scene Context) and reached a natural conclusion or transition point where this gameshow is ready to move to the next phase?\n\n` +
+                        `Prompt: Has this scene fulfilled its narrative purpose (outlined by Scene Context) and reached a natural conclusion or transition point where this gameshow is ready to move to the next phase? Consider whether the current script naturally leads into the upcoming round.\n\n` +
                         `Respond with exactly one of these terms:\n` +
-                        `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose (outlined by Scene Context), or hit a good transition point\n` +
+                        `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose (outlined by Scene Context), naturally leads into the upcoming round, or hits a good transition point\n` +
                         `- SCENE_CONTINUES if the scene hasn't fulfilled its purpose (outlined by Scene Context) or feels incomplete\n\n` +
                         `Begin the response with the appropriate term, followed by "###" and a brief explanation of your reasoning.`;
                     

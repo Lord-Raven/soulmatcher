@@ -8,6 +8,7 @@ import { Emotion } from "../Emotion";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { LastPage, PlayArrow, Send } from "@mui/icons-material";
 import { CandidateSelectionUI } from "./CandidateSelectionUI";
+import { Curtain } from "./Curtain";
 import { useCallback } from "react";
 
 interface StudioScreenProps {
@@ -226,6 +227,16 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                     locationImageUrl: ''
                 });
         }
+    };
+
+    // Determine curtain position based on game phase
+    const getCurtainPosition = (): 'up' | 'down' => {
+        // Curtain is down during initial phases and epilogue
+        const phasesCurtainDown = [
+            GamePhase.EPILOGUE
+        ];
+        
+        return phasesCurtainDown.includes(currentPhase) ? 'down' : 'up';
     };
 
     const buildFinalVotePrompt = (candidates: Actor[]): string => {
@@ -610,6 +621,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             {(skit && skit.script) ? <NovelVisualizer
             script={skit}
             getBackgroundImageUrl={(script, index: number) => {return (script as Skit).locationImageUrl || ''}}
+            backgroundElements={<Curtain position={getCurtainPosition()} zIndex={10} />}
             isVerticalLayout={isVerticalLayout}
             actors={stage().saveData.actors}
             playerActorId={stage().getPlayerActor().id}

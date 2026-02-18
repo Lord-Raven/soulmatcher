@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import { Box, LinearProgress, Typography } from '@mui/material';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
+import { Curtain } from './Curtain';
 import { useTheme } from '@mui/material/styles';
 
 /*
@@ -84,6 +85,9 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
                 overflow: 'hidden',
             }}
         >
+            {/* Curtain Overlay */}
+            <Curtain position="down" />
+
             {/* Animated background effect */}
             <Box
                 className="grid-overlay"
@@ -106,7 +110,7 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
                     flexDirection: 'column',
                     alignItems: 'center',
                     padding: 4,
-                    zIndex: 1,
+                    zIndex: 10,
                 }}
             >
                 <Typography

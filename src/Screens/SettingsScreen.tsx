@@ -2,6 +2,7 @@ import { FC, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Stage } from '../Stage';
 import { GlassPanel, Title, Button, TextInput } from './UIComponents';
+import { Curtain } from './Curtain';
 import { Close } from '@mui/icons-material';
 
 interface SettingsScreenProps {
@@ -163,12 +164,16 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                     }
                 }}
             >
+                {/* Curtain Overlay */}
+                <Curtain position="down" />
+
                 <motion.div
                     initial={{ scale: 0.9, y: 50 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.9, y: 50 }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                     onClick={(e) => e.stopPropagation()}
+                    style={{ position: 'relative', zIndex: 10 }}
                 >
                     <GlassPanel 
                         variant="bright"

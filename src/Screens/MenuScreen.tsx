@@ -1,13 +1,10 @@
-/*
- * This screen represents both the start-up and in-game menu screen. It should present basic options: new game, load game, settings.
- */
-
 import { FC, useEffect, useState } from "react";
 import { Stage } from "../Stage";
 import { ScreenType } from "./BaseScreen";
 import { useTooltip } from "./TooltipContext";
 import { FiberNew, PlayArrow, Settings } from "@mui/icons-material";
 import { SettingsScreen } from "./SettingsScreen";
+import { Curtain } from "./Curtain";
 import { BlurredBackground } from "@lord-raven/novel-visualizer";
 import { Button, GridOverlay, Title } from "./UIComponents";
 import { motion } from "framer-motion";
@@ -104,6 +101,9 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
         }
     ];
 
+    // Studio audience image: https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png
+    // Curtain image: https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/3633b3c0-8eba-4621-8ab1-02ab06205d28.png
+
     return (
         <BlurredBackground
             imageUrl="https://media.charhub.io/d41042d5-5860-4f76-85ac-885e65e92c2b/95fdc548-1c75-4101-a62e-65fc90a97437.png"
@@ -116,9 +116,13 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '100vh', 
-                    width: '100vw'
+                    width: '100vw',
+                    position: 'relative',
                 }}
             >
+                {/* Curtain Overlay */}
+                <Curtain position="down" />
+
                 {/* Background grid effect */}
                 <GridOverlay />
 
@@ -135,6 +139,8 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                         maxHeight: '90vh',
                         overflow: 'auto',
                         boxSizing: 'border-box',
+                        position: 'relative',
+                        zIndex: 10,
                     }}
                 >
                     {/* Title */}

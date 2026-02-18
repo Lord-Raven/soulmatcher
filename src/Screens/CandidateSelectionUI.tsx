@@ -5,6 +5,7 @@ import { CheckCircle } from '@mui/icons-material';
 import { Actor } from '../Actor';
 import { Emotion } from '../Emotion';
 import { Button } from './UIComponents';
+import { Curtain } from './Curtain';
 import { BlurredBackground } from '@lord-raven/novel-visualizer';
 
 interface CandidateSelectionUIProps {
@@ -87,6 +88,9 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                         position: 'relative',
                     }}
                 >
+                {/* Curtain Overlay */}
+                <Curtain position="down" />
+
                 {isProcessing && (
                     <Box
                         sx={{
@@ -98,7 +102,7 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: 2,
-                            zIndex: 2,
+                            zIndex: 20,
                         }}
                     >
                         <CircularProgress size={56} sx={{ color: '#FFD700' }} />
@@ -119,6 +123,8 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                     sx={{
                         textAlign: 'center',
                         marginTop: isVerticalLayout ? 2 : 4,
+                        position: 'relative',
+                        zIndex: 10,
                     }}
                 >
                     <Typography
@@ -166,6 +172,8 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                         gap: 2,
                         alignItems: 'stretch',
                         pointerEvents: isProcessing ? 'none' : 'auto',
+                        position: 'relative',
+                        zIndex: 10,
                     }}
                 >
                     <AnimatePresence>
@@ -311,6 +319,8 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                     transition={{ duration: 0.3, delay: 0.1 }}
                     style={{
                         pointerEvents: isProcessing ? 'none' : 'auto',
+                        position: 'relative',
+                        zIndex: 10,
                     }}
                 >
                     <Button

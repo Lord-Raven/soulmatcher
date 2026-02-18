@@ -298,7 +298,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     const spiceInstructions = {
                         1: '\n\nSoulMatcher has a TV14 Rating: Romantic and flirty content is encouraged. Include playful banter, romantic tension, chemistry, and light sensual themes. Avoid overtly sexual content but embrace the romantic and seductive atmosphere of a dating show.',
                         2: '\n\nSoulMatcher has a MA17 Rating: Suggestive content is appropriate. Include flirtation, romantic and sexual tension, suggestive dialogue, innuendo, and moderate sensual themes. Implied intimacy and steamy situations are welcome.',
-                        3: '\n\nSoulMatcher is an Unrated Adults-Only Show: Explicit and risqué content is encouraged. Scenes may overtly feature mature themes, sensual descriptions, passionate encounters, and more taboo adult situations when it suits character dynamics and context. Embrace the full spectrum of adult sexual content.'
+                        3: '\n\nSoulMatcher is an Unrated Adults-Only Show: Explicit and risqué content is encouraged. Scenes may overtly feature pornographic or other mature material, sensual descriptions, passionate encounters, and other evocative adult situations. Embrace the full spectrum of taboo sexual content.'
                     };
                     return spiceInstructions[spiceLevel as keyof typeof spiceInstructions] || spiceInstructions[2];
                 })() +

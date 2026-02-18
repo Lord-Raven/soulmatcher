@@ -474,10 +474,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
     
     let skit = stage().getCurrentSkit();
 
-    if (skit) {
-        console.log("Current skit for StudioScreen:", skit);
-    }
-
     // Get phase-appropriate title for the ribbon
     const getPhaseTitle = (phase: GamePhase): string => {
         switch (phase) {

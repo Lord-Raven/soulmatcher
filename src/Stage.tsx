@@ -144,7 +144,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             profile: `The Roman god of love, mischief, and matchmaking. He delights in orchestrating romantic encounters and spreading affection among mortals. Today, he's hosting reality television, tomorrow, maybe he'll start a war.`, // this.primaryCharacter.personality || '',
             themeColor: '#FF69B4',
             themeFontFamily: 'Arial, sans-serif',
-            emotionPack: this.primaryCharacter.partial_extensions?.chub?.expressions
+            emotionPack: this.primaryCharacter.partial_extensions?.chub?.expressions?.expressions
         });
 
         console.log('Host actor emotion pack:');

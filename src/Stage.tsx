@@ -214,8 +214,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const inclusions = (this.saveData.includeTags || []).map(tag => encodeURIComponent(tag)).join('%2C');
                 const response = await fetch(this.characterSearchQuery
                     .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
-                    .replace('{{EXCLUSIONS}}', exclusions ? exclusions + '%2C' : '')
-                    .replace('{{SEARCH_TAGS}}', inclusions ? inclusions + '%2C' : ''));
+                    .replace('{{EXCLUSIONS}}', exclusions ? exclusions : '')
+                    .replace('{{SEARCH_TAGS}}', inclusions ? inclusions : ''));
                 const searchResults = await response.json();
                 console.log(searchResults);
                 // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:

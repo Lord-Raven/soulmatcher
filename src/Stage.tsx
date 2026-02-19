@@ -72,7 +72,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         `&nsfw_only=false&require_images=false&require_example_dialogues=false&require_alternate_greetings=false&require_custom_prompt=false&exclude_mine=false&min_tokens=200&max_tokens=5000` +
         `&require_expressions=true&require_lore=false&mine_first=false&require_lore_embedded=false&require_lore_linked=false&my_favorites=false&inclusive_or=true&recommended_verified=false&count=false&min_tags=3`;
     readonly characterDetailQuery = 'https://inference.chub.ai/api/characters/{fullPath}?full=true';
-    private actorPageNumber = Math.floor(Math.random() * this.MAX_PAGES);
+    private actorPageNumber = Math.max(1, Math.floor(Math.random() * this.MAX_PAGES));
     readonly CONTESTANT_COUNT = 5;
     loadPromises: Promise<void>[] = [];
 
@@ -213,7 +213,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
                 const inclusions = (this.saveData.includeTags || []).map(tag => encodeURIComponent(tag)).join('%2C');
                 const response = await fetch(this.characterSearchQuery
-                    .replace('{{PAGE_NUMBER}}', Math.max(this.actorPageNumber, 1).toString())
+                    .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
                     .replace('{{EXCLUSIONS}}', exclusions ? exclusions : '')
                     .replace('{{SEARCH_TAGS}}', inclusions ? inclusions : ''));
                 const searchResults = await response.json();

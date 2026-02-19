@@ -32,15 +32,15 @@ html, body, #root {
 /* Glass Panel Effects */
 .glass-panel {
   background: linear-gradient(135deg, 
-    rgba(75, 50, 120, 0.12) 0%, 
-    rgba(100, 70, 140, 0.10) 100%);
+    rgba(75, 50, 120, 0.28) 0%, 
+    rgba(100, 70, 140, 0.24) 100%);
   backdrop-filter: blur(12px);
   border: 2px solid transparent;
   border-radius: 24px;
   background-image: 
     linear-gradient(135deg, 
-      rgba(75, 50, 120, 0.12) 0%, 
-      rgba(100, 70, 140, 0.10) 100%),
+      rgba(75, 50, 120, 0.28) 0%, 
+      rgba(100, 70, 140, 0.24) 100%),
     linear-gradient(135deg, 
       rgba(255, 20, 147, 0.4), 
       rgba(255, 215, 0, 0.4));
@@ -52,15 +52,15 @@ html, body, #root {
 
 .glass-panel-bright {
   background: linear-gradient(135deg, 
-    rgba(75, 50, 120, 0.20) 0%, 
-    rgba(100, 70, 140, 0.16) 100%);
+    rgba(75, 50, 120, 0.50) 0%, 
+    rgba(100, 70, 140, 0.45) 100%);
   backdrop-filter: blur(16px);
   border: 2px solid transparent;
   border-radius: 24px;
   background-image: 
     linear-gradient(135deg, 
-      rgba(75, 50, 120, 0.20) 0%, 
-      rgba(100, 70, 140, 0.16) 100%),
+      rgba(75, 50, 120, 0.50) 0%, 
+      rgba(100, 70, 140, 0.45) 100%),
     linear-gradient(135deg, 
       rgba(148, 0, 79, 0.4), 
       rgba(199, 169, 0, 0.4));

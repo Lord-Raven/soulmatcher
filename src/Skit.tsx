@@ -240,24 +240,24 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
     let fullPrompt = `{{messages}}\nPremise:\nThis is an interactive visual novel depicting a modern dating gameshow hosted by the actual Roman god of love, Cupid.` +
         `The game positions the player character, ${player.name}, as the primary contestant interviewing a number of candidate love interests. After a couple rounds of interviews, ${player.name}, the audience, and Cupid himself will ` +
         `vote on the candidate they think should become ${player.name}'s soulmate, and then Cupid will shoot them both and seal the deal.` +
-        `\n\n${player.name}'s profile: ${player.description}` +
-        `\n\nCupid's profile: ${host.description}` +
-        `\n\nScene Prompt:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
+        `\n\n${player.name}\n  Description: ${player.description}` + // Player has only a description.
+        `\n\nCupid\n  Description: ${host.description}\n  Profile: ${host.profile}\n  Motive: ${host.motive}` +
+        `\n\nScene Prompt for Current Round:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
         `${upcomingRound ? `\n\nUpcoming Round:\n${upcomingRound}` : ''}` +        
         
         ((historyLength > 0 && pastSkits.length) ? 
                 // Include last few skit scripts for context and style reference
                 '\n\nRecent Events for additional context:' + pastSkits.map((v, index) =>  {
                 if (v && v.script && v.script.length > 0) {
-                    return `\n\n  Script of previous skit:\n${buildScriptLog(stage, v)}`;
+                    return `\n\n  Script of previous round (${v.skitType}):\n${buildScriptLog(stage, v)}`;
                 }
             }).join('') : '') +
 
         // List characters who are here, along with full stat details:
         `\n\nParticipating Candidates:\n${presentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n`}).join('\n')}` +
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}` +
         `\n\nOther Candidates:\n${absentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n`}).join('\n')}` +
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}` +
         `\n\n${instruction}`;
     return fullPrompt;
 }

@@ -50,6 +50,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Male': ['Male', 'Boy', 'Man'],
         'Female': ['Female', 'Girl', 'Woman'],
         'Transgender': ['Trans', 'Transgender', 'Transexual','Transfem','Transmasc'],
+        'NonBinary': ['Non-Binary', 'Nonbinary', 'Enby', 'Genderqueer'],
         'Futanari': ['Futanari', 'Futa'],
     }
 
@@ -63,16 +64,16 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         // Tag toggles; banTagMap toggles default to true (enabled), includeTagMap toggles default to false (disabled).
         // Load from save arrays, if they exist.
         tagToggles: {
-            // Ban tags: unchecked means banned
-            ...Object.fromEntries(
-                Object.keys(banTagMap).map(key => [
-                    key, !stage().saveData.bannedTags?.some(bannedTag => banTagMap[key].includes(bannedTag))
-                ])
-            ),
             // Include tags: checked means included
             ...Object.fromEntries(
                 Object.keys(includeTagMap).map(key => [
                     key, stage().saveData.includeTags?.some(includeTag => includeTagMap[key].includes(includeTag)) ?? false
+                ])
+            ),
+            // Ban tags: unchecked means banned
+            ...Object.fromEntries(
+                Object.keys(banTagMap).map(key => [
+                    key, !stage().saveData.bannedTags?.some(bannedTag => banTagMap[key].includes(bannedTag))
                 ])
             )
         }

@@ -97,6 +97,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             if (!this.saveData.gameProgress) {
                 this.saveData.gameProgress = this.createInitialGameProgress();
             }
+            if (!this.saveData.includeTags) {
+                this.saveData.includeTags = ['Male', 'Female', 'Transgender', 'Nonbinary', 'Futanari'];
+            }
         } else {
             this.saveData = {
                 actors: {},

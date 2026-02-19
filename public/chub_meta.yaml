@@ -2,10 +2,10 @@
 #   in which case these values can be managed in the UI.
 
 # The name of the stage.
-project_name: "Soulmatcher"
+project_name: "SoulMatcher"
 
 # A short tagline to show in search.
-tagline: "The one and only dating gameshow where contestants become inexorably soul-linked with near-strangers!"
+tagline: "The only dating gameshow where contestants become inexorably soul-linked with near-strangers!"
 
 # 'PUBLIC', 'PRIVATE', or 'UNLISTED'.
 visibility: 'PRIVATE'
@@ -28,7 +28,7 @@ tags:
  - 'Gameshow'
 
 creator_notes: "
-<div>Let's fucking go.</div>
+<div>This is my 2026 Valentines Botjam stage. More notes later, sorry.</div>
 "
 
 # The schema of any user-supplied config.

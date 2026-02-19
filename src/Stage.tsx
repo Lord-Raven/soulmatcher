@@ -43,6 +43,7 @@ type ChatStateType = {
     disableTextToSpeech: boolean;
     language: string;
     bannedTags: string[];
+    includeTags?: string[];
     spice?: number;  // 1-3 scale for content rating (1=flirty, 2=dirty, 3=explicit)
     gameProgress: GameProgressState;
 }
@@ -207,10 +208,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             while (reserveActors.length < this.CONTESTANT_COUNT) {
                 // Populate reserveActors; this is loaded with data from a service, calling the characterServiceQuery URL:
                 const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
+                const inclusions = (this.saveData.includeTags || []).map(tag => encodeURIComponent(tag)).join('%2C');
                 const response = await fetch(this.characterSearchQuery
                     .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
                     .replace('{{EXCLUSIONS}}', exclusions ? exclusions + '%2C' : '')
-                    .replace('{{SEARCH_TAGS}}', /*this.actorTags.concat(this.actorTags)*/[].join('%2C')));
+                    .replace('{{SEARCH_TAGS}}', inclusions ? inclusions + '%2C' : ''));
                 const searchResults = await response.json();
                 console.log(searchResults);
                 // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:

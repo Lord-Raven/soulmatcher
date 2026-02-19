@@ -34,11 +34,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
     ];
 
     // Each toggle can map to multiple tags when saved.
-    const tagMap: { [key: string]: string[] } = {
-        'Male': ['Male', 'Boy', 'Man'],
-        'Female': ['Female', 'Girl', 'Woman'],
-        'Transgender': ['Trans', 'Transgender', 'Transexual','Transfem','Transmasc'],
-        'Futanari': ['Futanari', 'Futa'],
+    const banTagMap: { [key: string]: string[] } = {
         'Bisexual': ['Bisexual', 'Bi'],
         'Gay': ['Gay'],
         'Lesbian': ['Lesbian'],
@@ -50,6 +46,12 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         'Elf': ['Elf', 'Elven', 'Dark Elf'],
         'Monster': ['Monster', 'Beast', 'Creature', 'Monstergirl'],
     }
+    const includeTagMap: { [key: string]: string[] } = {
+        'Male': ['Male', 'Boy', 'Man'],
+        'Female': ['Female', 'Girl', 'Woman'],
+        'Transgender': ['Trans', 'Transgender', 'Transexual','Transfem','Transmasc'],
+        'Futanari': ['Futanari', 'Futa'],
+    }
 
     // Load existing settings or use defaults
     const [settings, setSettings] = useState<SettingsData>({
@@ -58,12 +60,22 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         disableTextToSpeech: stage().saveData.disableTextToSpeech ?? false,
         language: stage().saveData.language || 'English',
         spice: stage().saveData.spice ?? 2,  // Default to middle of scale
-        // Tag toggles; disabling these can be used to filter undesired content. Load from save array, if one. Otherwise, default to true.
-        tagToggles: stage().saveData.bannedTags ? Object.fromEntries(
-            Object.keys(tagMap).map(key => [
-                key, !stage().saveData.bannedTags?.some(bannedTag => tagMap[key].includes(bannedTag))
-            ])
-        ) : Object.keys(tagMap).reduce((acc, key) => ({...acc, [key]: true}), {})
+        // Tag toggles; banTagMap toggles default to true (enabled), includeTagMap toggles default to false (disabled).
+        // Load from save arrays, if they exist.
+        tagToggles: {
+            // Ban tags: unchecked means banned
+            ...Object.fromEntries(
+                Object.keys(banTagMap).map(key => [
+                    key, !stage().saveData.bannedTags?.some(bannedTag => banTagMap[key].includes(bannedTag))
+                ])
+            ),
+            // Include tags: checked means included
+            ...Object.fromEntries(
+                Object.keys(includeTagMap).map(key => [
+                    key, stage().saveData.includeTags?.some(includeTag => includeTagMap[key].includes(includeTag)) ?? false
+                ])
+            )
+        }
     });
 
     const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([]);
@@ -72,7 +84,18 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
     const handleSave = () => {
         console.log('Saving settings:', settings);
 
-        stage().saveData.bannedTags = Object.keys(settings.tagToggles).filter(key => !settings.tagToggles[key]).map(key => tagMap[key] ? tagMap[key] : [key]).flat();
+        // Save banned tags (unchecked = banned for banTagMap items)
+        stage().saveData.bannedTags = Object.keys(banTagMap)
+            .filter(key => !settings.tagToggles[key])
+            .map(key => banTagMap[key] ? banTagMap[key] : [key])
+            .flat();
+        
+        // Save included tags (checked = included for includeTagMap items)
+        stage().saveData.includeTags = Object.keys(includeTagMap)
+            .filter(key => settings.tagToggles[key])
+            .map(key => includeTagMap[key] ? includeTagMap[key] : [key])
+            .flat();
+        
         stage().saveData.disableTextToSpeech = settings.disableTextToSpeech;
         stage().saveData.language = settings.language;
         stage().saveData.spice = settings.spice;

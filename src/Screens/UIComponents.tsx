@@ -191,26 +191,18 @@ export const Title: FC<TitleProps> = ({
 
 interface NamePlateProps {
 	actor?: Actor;
-	size?: 'sm' | 'md' | 'lg';
 	style?: React.CSSProperties;
 	className?: string;
 }
 
 export const NamePlate: FC<NamePlateProps> = ({
 	actor,
-	size = 'md',
 	style,
 	className = ''
 }) => {
 	if (!actor) {
 		return null;
 	}
-
-	const sizeStyles = {
-		sm: { fontSize: '2rem', padding: '4px 4px', minHeight: '32px' },
-		md: { fontSize: '2.4rem', padding: '4px 2px', minHeight: '32px' },
-		lg: { fontSize: '3rem', padding: '4px 8px', minHeight: '40px' }
-	};
 
 	const nameplateColor = actor.themeColor || '#FFD700';
 
@@ -232,7 +224,9 @@ export const NamePlate: FC<NamePlateProps> = ({
 				textShadow: '0 2px 4px rgba(0, 0, 0, 0.65)',
 				letterSpacing: '0.04em',
 				fontWeight: 700,
-				...sizeStyles[size],
+				fontSize: '2rem',
+				padding: '4px 4px',
+				minHeight: '32px',
 				...style,
 				'&::after': {
 					content: '""',
@@ -244,16 +238,16 @@ export const NamePlate: FC<NamePlateProps> = ({
 				}
 			}}
 		>
-			<Typography
-				component="span"
-				sx={{
+			<span
+				style={{
 					fontFamily: actor.themeFontFamily || 'inherit',
 					position: 'relative',
-					zIndex: 1
+					zIndex: 1,
+					fontSize: 'inherit'
 				}}
 			>
 				{actor.name}
-			</Typography>
+			</span>
 		</Box>
 	);
 };

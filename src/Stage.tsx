@@ -213,7 +213,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
                 const inclusions = (this.saveData.includeTags || []).map(tag => encodeURIComponent(tag)).join('%2C');
                 const response = await fetch(this.characterSearchQuery
-                    .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
+                    .replace('{{PAGE_NUMBER}}', Math.max(this.actorPageNumber, 1).toString())
                     .replace('{{EXCLUSIONS}}', exclusions ? exclusions : '')
                     .replace('{{SEARCH_TAGS}}', inclusions ? inclusions : ''));
                 const searchResults = await response.json();

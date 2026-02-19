@@ -208,7 +208,7 @@ export const NamePlate: FC<NamePlateProps> = ({
 
 	const sizeStyles = {
 		sm: { fontSize: '2rem', padding: '4px 4px', minHeight: '32px' },
-		md: { fontSize: '2.4rem', padding: '4px 6px', minHeight: '36px' },
+		md: { fontSize: '2.4rem', padding: '4px 2px', minHeight: '32px' },
 		lg: { fontSize: '3rem', padding: '4px 8px', minHeight: '40px' }
 	};
 

@@ -11,6 +11,7 @@ import { CandidateSelectionUI } from "./CandidateSelectionUI";
 import { Curtain } from "./Curtain";
 import { useCallback } from "react";
 import { NamePlate } from "./UIComponents";
+import { useTooltip } from "./TooltipContext";
 
 interface StudioScreenProps {
     stage: () => Stage;
@@ -33,6 +34,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         audienceChoiceId: string;
         rawResponse: string;
     }> | null>(null);
+    const { setTooltip, clearTooltip } = useTooltip();
 
     const currentPhase = stage().getCurrentPhase();
     
@@ -622,17 +624,18 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             {(skit && skit.script) ? <NovelVisualizer
             script={skit}
             renderNameplate={(actor: any) => {
-                if (!actor) return null;
+                if (!actor || !actor.name) return null;
                 const typedActor = actor as Actor;
                 return (
                     <NamePlate
                         actor={typedActor}
-                        size={isVerticalLayout ? 'sm' : 'md'}
+                        size='sm'
                     />
                 );
             }}
             getBackgroundImageUrl={(script, index: number) => {return (script as Skit).locationImageUrl || ''}}
             backgroundElements={<Curtain position={getCurtainPosition()} zIndex={10} />}
+            setTooltip={setTooltip}
             isVerticalLayout={isVerticalLayout}
             actors={stage().saveData.actors}
             playerActorId={stage().getPlayerActor().id}

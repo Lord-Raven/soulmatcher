@@ -4,8 +4,7 @@ import { SvgIconComponent } from '@mui/icons-material';
 interface TooltipContextValue {
     message: string | null;
     icon: SvgIconComponent | undefined;
-    actionCost: number | undefined;
-    setTooltip: (message: string | null, icon?: SvgIconComponent, actionCost?: number, expiryMs?: number) => void;
+    setTooltip: (message: string | null, icon?: SvgIconComponent, expiryMs?: number) => void;
     setPriorityMessage: (message: string, icon?: SvgIconComponent, durationMs?: number) => void;
     clearTooltip: () => void;
 }
@@ -22,12 +21,15 @@ interface TooltipProviderProps {
 export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
     const [message, setMessage] = useState<string | null>(null);
     const [icon, setIcon] = useState<SvgIconComponent | undefined>(undefined);
-    const [actionCost, setActionCost] = useState<number | undefined>(undefined);
     const [isPriority, setIsPriority] = useState<boolean>(false);
-    const savedTooltipRef = useRef<{message: string | null, icon?: SvgIconComponent, actionCost?: number}>({message: null});
+    const savedTooltipRef = useRef<{message: string | null, icon?: SvgIconComponent}>({message: null});
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const setTooltip = (newMessage: string | null, newIcon?: SvgIconComponent, newActionCost?: number, expiryMs?: number) => {
+    const setTooltip = (newMessage: string | null, newIcon?: SvgIconComponent, expiryMs?: number) => {
+        if (!newMessage) {
+            clearTooltip();
+            return;
+        }
         // Don't update if a priority message is active
         if (isPriority) {
             return;
@@ -41,7 +43,6 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
 
         setMessage(newMessage);
         setIcon(newIcon);
-        setActionCost(newActionCost);
 
         // Set up auto-expiry if specified
         if (expiryMs && expiryMs > 0 && newMessage) {
@@ -50,7 +51,6 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
                 setMessage((currentMessage) => {
                     if (currentMessage === newMessage) {
                         setIcon(undefined);
-                        setActionCost(undefined);
                         return null;
                     }
                     return currentMessage;
@@ -70,15 +70,13 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
         // Save the current tooltip state
         savedTooltipRef.current = {
             message,
-            icon,
-            actionCost
+            icon
         };
 
         // Set priority message
         setIsPriority(true);
         setMessage(priorityMessage);
         setIcon(priorityIcon);
-        setActionCost(undefined);
 
         // Set up auto-revert after duration
         timeoutRef.current = setTimeout(() => {
@@ -87,7 +85,6 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
             const saved = savedTooltipRef.current;
             setMessage(saved.message);
             setIcon(saved.icon);
-            setActionCost(saved.actionCost);
             timeoutRef.current = null;
         }, durationMs);
     };
@@ -106,11 +103,10 @@ export const TooltipProvider: FC<TooltipProviderProps> = ({ children }) => {
         
         setMessage(null);
         setIcon(undefined);
-        setActionCost(undefined);
     };
 
     return (
-        <TooltipContext.Provider value={{ message, icon, actionCost, setTooltip, setPriorityMessage, clearTooltip }}>
+        <TooltipContext.Provider value={{ message, icon, setTooltip, setPriorityMessage, clearTooltip }}>
             {children}
         </TooltipContext.Provider>
     );

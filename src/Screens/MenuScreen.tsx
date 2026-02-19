@@ -212,7 +212,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             fontSize: 'clamp(10px, 1.5vw, 12px)',
                         }}
                     >
-                        {'v2026.02.09 - A Retro Dating Gameshow Experience'}
+                        {'v2026.02.19 - Initial Release.'}
                     </motion.div>
                 </motion.div>
             </Box>

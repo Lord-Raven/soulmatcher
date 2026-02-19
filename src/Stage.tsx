@@ -122,6 +122,17 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     async beforePrompt(userMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {return {}};
     async afterResponse(botMessage: Message): Promise<Partial<StageResponse<ChatStateType, MessageStateType>>> {return {}};
 
+    pushMessage(message: string) {
+        //if (this.isAuthenticated) {
+            this.messenger.impersonate({
+                speaker_id: this.primaryCharacter.anonymizedId,
+                is_main: false,
+                parent_id: null,
+                message: message
+            });
+        //}
+    }
+
     // This is called when the user starts a new game; some props supplied by initial settings screen.
     async startNewGame(playerDetails: Partial<Actor>): Promise<void> {
         // Initialize everything.

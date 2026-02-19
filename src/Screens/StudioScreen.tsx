@@ -10,6 +10,7 @@ import { LastPage, PlayArrow, Send } from "@mui/icons-material";
 import { CandidateSelectionUI } from "./CandidateSelectionUI";
 import { Curtain } from "./Curtain";
 import { useCallback } from "react";
+import { NamePlate } from "./UIComponents";
 
 interface StudioScreenProps {
     stage: () => Stage;
@@ -620,6 +621,16 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             
             {(skit && skit.script) ? <NovelVisualizer
             script={skit}
+            renderNameplate={(actor: any) => {
+                if (!actor) return null;
+                const typedActor = actor as Actor;
+                return (
+                    <NamePlate
+                        actor={typedActor}
+                        size={isVerticalLayout ? 'sm' : 'md'}
+                    />
+                );
+            }}
             getBackgroundImageUrl={(script, index: number) => {return (script as Skit).locationImageUrl || ''}}
             backgroundElements={<Curtain position={getCurtainPosition()} zIndex={10} />}
             isVerticalLayout={isVerticalLayout}
@@ -656,18 +667,11 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                             maxWidth: 300,
                         }}
                     >
-                        <Box
-                            component="h3"
-                            sx={{
-                                margin: 0,
-                                marginBottom: 1,
-                                color: typedActor.themeColor || '#ffffff',
-                                fontFamily: typedActor.themeFontFamily || 'inherit',
-                                fontSize: '1.2rem',
-                                fontWeight: 'bold',
-                            }}
-                        >
-                            {typedActor.name}
+                        <Box sx={{ marginBottom: 1 }}>
+                            <NamePlate
+                                actor={typedActor}
+                                size="sm"
+                            />
                         </Box>
                         <Box
                             sx={{

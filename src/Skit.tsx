@@ -530,6 +530,8 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     finalEntry.endScene = true;
                 }
 
+                stage.pushMessage(text);
+
                 return { entries: scriptEntries, endScene: endScene };
             }
         } catch (error) {

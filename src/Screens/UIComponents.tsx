@@ -5,6 +5,7 @@
  */
 
 import React, { FC, ReactNode } from 'react';
+import { Actor } from '../Actor';
 import { motion, HTMLMotionProps } from 'framer-motion';
 import { HourglassTop, HourglassBottom } from '@mui/icons-material';
 import { Box, Paper, Button as MuiButton, TextField, Chip as MuiChip, Typography } from '@mui/material';
@@ -181,6 +182,80 @@ export const Title: FC<TitleProps> = ({
 		>
 			{children}
 		</Typography>
+	);
+};
+
+/* ===============================================
+   NAMEPLATE COMPONENT
+   =============================================== */
+
+interface NamePlateProps {
+	actor?: Actor;
+	size?: 'sm' | 'md' | 'lg';
+	style?: React.CSSProperties;
+	className?: string;
+}
+
+export const NamePlate: FC<NamePlateProps> = ({
+	actor,
+	size = 'md',
+	style,
+	className = ''
+}) => {
+	if (!actor) {
+		return null;
+	}
+
+	const sizeStyles = {
+		sm: { fontSize: '0.8rem', padding: '4px 12px', minHeight: '24px' },
+		md: { fontSize: '0.95rem', padding: '6px 16px', minHeight: '28px' },
+		lg: { fontSize: '1.1rem', padding: '8px 20px', minHeight: '32px' }
+	};
+
+	const nameplateColor = actor.themeColor || '#FFD700';
+
+	return (
+		<Box
+			className={className}
+			sx={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				position: 'relative',
+				overflow: 'hidden',
+				borderRadius: '10px',
+				clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)',
+				backgroundColor: nameplateColor,
+				backgroundImage: 'linear-gradient(135deg, rgba(255, 20, 147, 0.25), rgba(255, 215, 0, 0.25))',
+				border: '1px solid rgba(255, 215, 0, 0.6)',
+				boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35)',
+				color: '#ffffff',
+				textShadow: '0 2px 4px rgba(0, 0, 0, 0.65)',
+				letterSpacing: '0.04em',
+				fontWeight: 700,
+				...sizeStyles[size],
+				...style,
+				'&::after': {
+					content: '""',
+					position: 'absolute',
+					inset: 0,
+					background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 60%)',
+					opacity: 0.35,
+					pointerEvents: 'none'
+				}
+			}}
+		>
+			<Typography
+				component="span"
+				sx={{
+					fontFamily: actor.themeFontFamily || 'inherit',
+					position: 'relative',
+					zIndex: 1
+				}}
+			>
+				{actor.name}
+			</Typography>
+		</Box>
 	);
 };
 

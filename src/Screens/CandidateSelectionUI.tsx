@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle } from '@mui/icons-material';
 import { Actor } from '../Actor';
 import { Emotion } from '../Emotion';
-import { Button } from './UIComponents';
+import { Button, NamePlate } from './UIComponents';
 import { Curtain } from './Curtain';
 import { BlurredBackground } from '@lord-raven/novel-visualizer';
 
@@ -278,17 +278,12 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                                             </Box>
 
                                             {/* Name and Profile */}
-                                            <Typography
-                                                variant="h6"
-                                                sx={{
-                                                    color: candidate.themeColor || '#FFD700',
-                                                    fontWeight: 'bold',
-                                                    marginBottom: 1,
-                                                    fontFamily: candidate.themeFontFamily || 'inherit',
-                                                }}
-                                            >
-                                                {candidate.name}
-                                            </Typography>
+                                            <Box sx={{ marginBottom: 1, display: 'flex', justifyContent: 'center' }}>
+                                                <NamePlate
+                                                    actor={candidate}
+                                                    size={isVerticalLayout ? 'sm' : 'md'}
+                                                />
+                                            </Box>
 
                                             <Typography
                                                 variant="caption"

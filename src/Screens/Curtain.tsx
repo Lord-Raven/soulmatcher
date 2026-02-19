@@ -70,6 +70,7 @@ export const Curtain: FC<CurtainProps> = ({
                         width: '100%',
                         height: 'auto',
                         display: 'block',
+                        filter: 'blur(1px)',
                         userSelect: 'none',
                         WebkitUserDrag: 'none',
                     }}

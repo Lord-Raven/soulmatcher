@@ -49,7 +49,7 @@ type ChatStateType = {
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
-    readonly FETCH_AT_TIME = 20;
+    readonly FETCH_AT_TIME = 6;
     readonly MAX_PAGES = 30;
     readonly bannedTagsDefault = [
         'FUZZ',
@@ -214,7 +214,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const searchResults = await response.json();
                 console.log(searchResults);
                 // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:
-                const basicCharacterData = searchResults.data?.nodes.filter((item: string, index: number) => index < this.CONTESTANT_COUNT - reserveActors.length).map((item: any) => item.fullPath) || [];
+                const basicCharacterData = searchResults.data?.nodes.map((item: any) => item.fullPath) || [];
                 if (basicCharacterData.length === 0) {
                     console.log('No more characters found in search results; resetting to first page.');
                     this.actorPageNumber = 0; // reset to first page if we run out of results
@@ -224,7 +224,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 console.log(basicCharacterData);
 
                 const newActors: Actor[] = await Promise.all(basicCharacterData.map(async (fullPath: string) => {
-                    return loadReserveActorFromFullPath(fullPath, this);
+                    try {
+                        return await loadReserveActorFromFullPath(fullPath, this);
+                    } catch (error) {
+                        console.error(`Error loading actor from path ${fullPath}:`, error);
+                        return null;
+                    }
                 }));
 
                 reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
@@ -234,6 +239,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 } else {
                     console.log(`Found ${reserveActors.length} valid contestants!`);
                     console.log(reserveActors);
+                    // Cut down to the exact number needed, in case we got extras from the last search
+                    reserveActors = reserveActors.slice(0, this.CONTESTANT_COUNT);
                 }
             }
             reserveActors.forEach(actor => this.saveData.actors[actor.id] = actor);

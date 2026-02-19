@@ -6,10 +6,10 @@
 
 import React, { FC, ReactNode } from 'react';
 import { Actor } from '../Actor';
-import { motion, HTMLMotionProps } from 'framer-motion';
-import { HourglassTop, HourglassBottom } from '@mui/icons-material';
-import { Box, Paper, Button as MuiButton, TextField, Chip as MuiChip, Typography } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HourglassTop, HourglassBottom, OpenInNew } from '@mui/icons-material';
+import { Box, Button as MuiButton, Chip as MuiChip, Typography } from '@mui/material';
+import { useTooltip } from './TooltipContext';
 
 /* ===============================================
    PANEL COMPONENTS (Using MUI Paper with custom styling)
@@ -24,8 +24,7 @@ interface GlassPanelProps {
 
 export const GlassPanel: FC<GlassPanelProps> = ({ 
 	variant = 'default', 
-	children, 
-	className = '',
+	children,
 	style,
 }) => {
 	return (
@@ -204,7 +203,11 @@ export const NamePlate: FC<NamePlateProps> = ({
 		return null;
 	}
 
-	const nameplateColor = actor.themeColor || '#FFD700';
+	const themeColor = actor.themeColor || '#FFD700';
+	const { setTooltip, clearTooltip } = useTooltip();
+
+	const hoverText = actor.fullPath ? `${actor.name} by ${actor.fullPath.split('/')[0]}` : '';
+	const link = actor.fullPath ? `https://chub.ai/characters/${actor.fullPath}` : null;
 
 	return (
 		<Box
@@ -216,24 +219,30 @@ export const NamePlate: FC<NamePlateProps> = ({
 				position: 'relative',
 				overflow: 'hidden',
 				borderRadius: '10px',
-				backgroundColor: nameplateColor,
-				backgroundImage: 'linear-gradient(135deg, rgba(255, 20, 147, 0.25), rgba(255, 215, 0, 0.25))',
-				border: '1px solid rgba(255, 215, 0, 0.6)',
-				boxShadow: '0 6px 16px rgba(0, 0, 0, 0.35)',
-				color: '#ffffff',
-				textShadow: '0 2px 4px rgba(0, 0, 0, 0.65)',
+				background: 'linear-gradient(135deg, rgba(40, 25, 70, 0.65) 0%, rgba(55, 35, 85, 0.6) 100%)',
+				backdropFilter: 'blur(12px)',
+				border: '2px solid transparent',
+				backgroundImage: `
+					linear-gradient(135deg, rgba(40, 25, 70, 0.65) 0%, rgba(55, 35, 85, 0.6) 100%),
+					linear-gradient(135deg, rgba(255, 20, 147, 0.6), rgba(255, 215, 0, 0.6))
+				`,
+				backgroundOrigin: 'border-box',
+				backgroundClip: 'padding-box, border-box',
+				boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 20, 147, 0.2)',
+				color: themeColor,
+				textShadow: `0 0 8px ${themeColor}80, 0 2px 4px rgba(0, 0, 0, 0.8)`,
 				letterSpacing: '0.04em',
 				fontWeight: 700,
 				fontSize: '1.4rem',
-				padding: '4px 4px',
+				padding: '6px 12px',
 				minHeight: '32px',
 				...style,
 				'&::after': {
 					content: '""',
 					position: 'absolute',
 					inset: 0,
-					background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 60%)',
-					opacity: 0.35,
+					background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 60%)',
+					opacity: 0.5,
 					pointerEvents: 'none'
 				}
 			}}
@@ -247,6 +256,26 @@ export const NamePlate: FC<NamePlateProps> = ({
 				}}
 			>
 				{actor.name}
+				{link && (
+					<OpenInNew
+						onMouseEnter={() => setTooltip(hoverText)}
+						onMouseLeave={clearTooltip}
+						onClick={(e) => {
+							e.stopPropagation();
+							window.open(link, '_blank');
+						}}
+						style={{
+							marginLeft: '6px',
+							fontSize: '0.85em',
+							cursor: 'pointer',
+							verticalAlign: 'middle',
+							opacity: 0.8,
+							transition: 'opacity 0.2s ease'
+						}}
+						onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+						onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
+					/>
+				)}
 			</span>
 		</Box>
 	);
@@ -385,5 +414,116 @@ export const MenuItem: FC<MenuItemProps> = ({
 				</div>
 			</motion.div>
 		</motion.div>
+	);
+};
+/* ===============================================
+   CONFIRM DIALOG COMPONENT
+   =============================================== */
+
+interface ConfirmDialogProps {
+	isOpen: boolean;
+	title: string;
+	message: string;
+	confirmText?: string;
+	cancelText?: string;
+	onConfirm: () => void;
+	onCancel: () => void;
+}
+
+export const ConfirmDialog: FC<ConfirmDialogProps> = ({
+	isOpen,
+	title,
+	message,
+	confirmText = 'Continue',
+	cancelText = 'Cancel',
+	onConfirm,
+	onCancel,
+}) => {
+	return (
+		<AnimatePresence>
+			{isOpen && (
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					exit={{ opacity: 0 }}
+					transition={{ duration: 0.2 }}
+					style={{
+						position: 'fixed',
+						top: 0,
+						left: 0,
+						right: 0,
+						bottom: 0,
+						background: 'rgba(0, 0, 0, 0.75)',
+						backdropFilter: 'blur(4px)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						zIndex: 2000,
+						padding: '20px',
+					}}
+					onClick={onCancel}
+				>
+					<motion.div
+						initial={{ scale: 0.9, y: 20 }}
+						animate={{ scale: 1, y: 0 }}
+						exit={{ scale: 0.9, y: 20 }}
+						transition={{ duration: 0.2, ease: 'easeOut' }}
+						onClick={(e) => e.stopPropagation()}
+						style={{
+							background: 'linear-gradient(135deg, rgba(36, 7, 65, 0.95) 0%, rgba(26, 10, 46, 0.95) 100%)',
+							border: '2px solid rgba(255, 20, 147, 0.5)',
+							borderRadius: '12px',
+							padding: '30px',
+							maxWidth: '500px',
+							width: '100%',
+							boxShadow: '0 10px 40px rgba(255, 20, 147, 0.3)',
+						}}
+					>
+						{/* Title */}
+						<Typography
+							variant="h5"
+							className="text-gradient"
+							sx={{
+								fontSize: '24px',
+								fontWeight: 'bold',
+								marginBottom: '16px',
+								textAlign: 'center',
+							}}
+						>
+							{title}
+						</Typography>
+
+						{/* Message */}
+						<Typography
+							sx={{
+								color: 'rgba(255, 255, 255, 0.85)',
+								fontSize: '16px',
+								lineHeight: 1.6,
+								marginBottom: '24px',
+								textAlign: 'center',
+							}}
+						>
+							{message}
+						</Typography>
+
+						{/* Action Buttons */}
+						<div
+							style={{
+								display: 'flex',
+								gap: '12px',
+								justifyContent: 'center',
+							}}
+						>
+							<Button variant="secondary" onClick={onCancel}>
+								{cancelText}
+							</Button>
+							<Button variant="primary" onClick={onConfirm}>
+								{confirmText}
+							</Button>
+						</div>
+					</motion.div>
+				</motion.div>
+			)}
+		</AnimatePresence>
 	);
 };

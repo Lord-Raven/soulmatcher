@@ -50,7 +50,7 @@ export const Curtain: FC<CurtainProps> = ({
         >
             <motion.div
                 animate={{
-                    y: position === 'down' ? 0 : -1000,
+                    y: position === 'down' ? 0 : '-110%',
                 }}
                 transition={{
                     duration: 0.6,

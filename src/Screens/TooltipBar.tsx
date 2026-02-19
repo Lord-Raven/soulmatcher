@@ -7,7 +7,6 @@ interface TooltipBarProps {
     message: string | null;
     Icon?: SvgIconComponent;
     visible?: boolean;
-    actionCost?: number; // Number of turns this action costs
     onDismiss?: () => void; // Callback when tooltip is dismissed
     autoDismissMs?: number; // Time in ms before auto-dismissing (default: 3000)
 }
@@ -20,8 +19,7 @@ interface TooltipBarProps {
 export const TooltipBar: FC<TooltipBarProps> = ({ 
     message, 
     Icon, 
-    visible = true, 
-    actionCost,
+    visible = true,
     onDismiss,
     autoDismissMs = 3000
 }) => {
@@ -142,29 +140,6 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                         >
                             {message}
                         </Typography>
-                        {actionCost && actionCost > 0 && (
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                    marginLeft: '8px',
-                                    paddingLeft: '12px',
-                                    borderLeft: '2px solid rgba(255, 20, 147, 0.4)',
-                                }}
-                            >
-                                {Array.from({ length: actionCost }).map((_, i) => (
-                                    <HourglassEmpty
-                                        key={i}
-                                        sx={{
-                                            color: '#FF1493',
-                                            fontSize: '20px',
-                                            filter: 'drop-shadow(0 0 6px rgba(255, 20, 147, 0.5))',
-                                        }}
-                                    />
-                                ))}
-                            </Box>
-                        )}
                     </Box>
                 </motion.div>
             )}

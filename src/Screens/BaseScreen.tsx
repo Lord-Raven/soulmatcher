@@ -25,7 +25,7 @@ interface BaseScreenProps {
 const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
     const [screenType, setScreenType] = React.useState<ScreenType>(ScreenType.MENU);
     const [isVerticalLayout, setIsVerticalLayout] = React.useState<boolean>(stage().isVerticalLayout());
-    const { message, icon, actionCost, clearTooltip, setPriorityMessage } = useTooltip();
+    const { message, icon, clearTooltip, setPriorityMessage } = useTooltip();
 
     // Set up the priority message callback in the stage
     React.useEffect(() => {
@@ -63,8 +63,7 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
             {/* Unified tooltip bar that renders over all screens */}
             <TooltipBar 
                 message={message} 
-                Icon={icon} 
-                actionCost={actionCost} 
+                Icon={icon}
                 onDismiss={clearTooltip}
             />
         </div>

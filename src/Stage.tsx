@@ -68,7 +68,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         'feral'
     ];
     // At least one of these is required for a faction search; helps indicate that the card has a focus on setting or tone.
-    readonly characterSearchQuery = `https://inference.chub.ai/search?first=${this.FETCH_AT_TIME}&exclude_tags={{EXCLUSIONS}}&&page={{PAGE_NUMBER}}&tags={{SEARCH_TAGS}}&sort=random&asc=false&include_forks=false&nsfw=true&nsfl=false` +
+    readonly characterSearchQuery = `https://inference.chub.ai/search?first=${this.FETCH_AT_TIME}&exclude_tags={{EXCLUSIONS}}&page={{PAGE_NUMBER}}&tags={{SEARCH_TAGS}}&sort=random&asc=false&include_forks=false&nsfw=true&nsfl=false` +
         `&nsfw_only=false&require_images=false&require_example_dialogues=false&require_alternate_greetings=false&require_custom_prompt=false&exclude_mine=false&min_tokens=200&max_tokens=5000` +
         `&require_expressions=true&require_lore=false&mine_first=false&require_lore_embedded=false&require_lore_linked=false&my_favorites=false&inclusive_or=true&recommended_verified=false&count=false&min_tags=3`;
     readonly characterDetailQuery = 'https://inference.chub.ai/api/characters/{fullPath}?full=true';
@@ -156,7 +156,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             type: 'HOST',
             name: 'Cupid', // this.primaryCharacter.name || 'Host',
             description: `The lithe-and-spritely Roman god of love, Cupid. He wears a classic, loose toga over his slim frame and carries a wireless microphone. His pink caesar-cut hair bears golden laurels, and his matching pink eyes dart and twinkle with perpetual mischief. He flits upon angelic wings or lounges in ridiculously languid poses—never simply standing.`, // this.primaryCharacter.description || '',
-            profile: `The Roman god of love, mischief, and matchmaking. He delights in orchestrating romantic encounters and spreading affection among mortals. The quick-talking Cupid somehow manages to be bratty-yet-suave in a frustratingly charming way. Today, he's hosting reality television, tomorrow? Maybe he'll start a war.`, // this.primaryCharacter.personality || '',
+            profile: `The Roman god of love, mischief, and matchmaking. He delights in orchestrating romantic encounters and spreading affection among mortals. The quick-talking Cupid somehow manages to be bratty-yet-suave in a frustratingly charming way. Today, he's hosting reality television; tomorrow? Maybe he'll start a war.`, // this.primaryCharacter.personality || '',
             motive: `To create the most entertaining and heartwarming dating show in history, while subtly puppeteering events to his amusement. Cupid secretly dislikes much of the show's branding, including the mixed-case title, "SoulMatcher," and the golden "baby Cupid" silhouettes (imagery that has long been a thorn in his side).`, // this.primaryCharacter.motive || '',
             themeColor: '#FF69B4',
             themeFontFamily: 'Arial, sans-serif',
@@ -222,7 +222,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 const basicCharacterData = searchResults.data?.nodes.map((item: any) => item.fullPath) || [];
                 if (basicCharacterData.length === 0) {
                     console.log('No more characters found in search results; resetting to first page.');
-                    this.actorPageNumber = 0; // reset to first page if we run out of results
+                    this.actorPageNumber = 1; // reset to first page if we run out of results
                 } else {
                     this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
                 }

@@ -207,9 +207,9 @@ export const NamePlate: FC<NamePlateProps> = ({
 	}
 
 	const sizeStyles = {
-		sm: { fontSize: '1rem', padding: '4px 12px', minHeight: '24px' },
-		md: { fontSize: '1.1rem', padding: '6px 16px', minHeight: '28px' },
-		lg: { fontSize: '1.2rem', padding: '8px 20px', minHeight: '32px' }
+		sm: { fontSize: '1.4rem', padding: '4px 12px', minHeight: '24px' },
+		md: { fontSize: '1.6rem', padding: '6px 16px', minHeight: '28px' },
+		lg: { fontSize: '1.8rem', padding: '8px 20px', minHeight: '32px' }
 	};
 
 	const nameplateColor = actor.themeColor || '#FFD700';
@@ -224,7 +224,6 @@ export const NamePlate: FC<NamePlateProps> = ({
 				position: 'relative',
 				overflow: 'hidden',
 				borderRadius: '10px',
-				clipPath: 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)',
 				backgroundColor: nameplateColor,
 				backgroundImage: 'linear-gradient(135deg, rgba(255, 20, 147, 0.25), rgba(255, 215, 0, 0.25))',
 				border: '1px solid rgba(255, 215, 0, 0.6)',

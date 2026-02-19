@@ -224,8 +224,8 @@ export const NamePlate: FC<NamePlateProps> = ({
 				textShadow: '0 2px 4px rgba(0, 0, 0, 0.65)',
 				letterSpacing: '0.04em',
 				fontWeight: 700,
-				fontSize: '1.5rem',
-				padding: '6px 4px',
+				fontSize: '1.4rem',
+				padding: '4px 4px',
 				minHeight: '32px',
 				...style,
 				'&::after': {

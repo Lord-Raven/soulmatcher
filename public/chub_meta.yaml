@@ -8,7 +8,7 @@ project_name: "SoulMatcher"
 tagline: "The only dating gameshow where contestants become inexorably soul-linked with near-strangers!"
 
 # 'PUBLIC', 'PRIVATE', or 'UNLISTED'.
-visibility: 'PRIVATE'
+visibility: 'UNLISTED'
 
 # 'ADJACENT' | 'NONE' | 'COVER' | 'FULLSCREEN'
 # 'ADJACENT' is default. The frame will display on the side of the

@@ -107,6 +107,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 disableTextToSpeech: false,
                 language: 'English',
                 bannedTags: [],
+                includeTags: ['Male', 'Female', 'Transgender', 'Nonbinary', 'Futanari'],
                 gameProgress: this.createInitialGameProgress(),
             };
         }

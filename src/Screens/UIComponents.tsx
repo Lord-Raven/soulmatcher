@@ -207,9 +207,9 @@ export const NamePlate: FC<NamePlateProps> = ({
 	}
 
 	const sizeStyles = {
-		sm: { fontSize: '1.4rem', padding: '2px 4px', minHeight: '30px' },
-		md: { fontSize: '1.6rem', padding: '2px 6px', minHeight: '36px' },
-		lg: { fontSize: '1.8rem', padding: '2px 8px', minHeight: '40px' }
+		sm: { fontSize: '2rem', padding: '4px 4px', minHeight: '32px' },
+		md: { fontSize: '2.4rem', padding: '4px 6px', minHeight: '36px' },
+		lg: { fontSize: '3rem', padding: '4px 8px', minHeight: '40px' }
 	};
 
 	const nameplateColor = actor.themeColor || '#FFD700';

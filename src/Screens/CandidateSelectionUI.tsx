@@ -281,7 +281,6 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                                             <Box sx={{ marginBottom: 1, display: 'flex', justifyContent: 'center' }}>
                                                 <NamePlate
                                                     actor={candidate}
-                                                    size={isVerticalLayout ? 'sm' : 'md'}
                                                 />
                                             </Box>
 

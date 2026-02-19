@@ -631,7 +631,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return (
                     <NamePlate
                         actor={typedActor}
-                        size='sm'
                     />
                 );
             }}
@@ -675,7 +674,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                         <Box sx={{ marginBottom: 1 }}>
                             <NamePlate
                                 actor={typedActor}
-                                size="sm"
                             />
                         </Box>
                         <Box

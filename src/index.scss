@@ -35,27 +35,37 @@ html, body, #root {
     rgba(255, 20, 147, 0.08) 0%, 
     rgba(147, 112, 219, 0.06) 100%);
   backdrop-filter: blur(12px);
-  border: 2px solid;
-  border-image-slice: 1;
-  border-image-source: linear-gradient(135deg, 
-    rgba(255, 20, 147, 0.4), 
-    rgba(255, 215, 0, 0.4));
-  border-radius: 12px;
+  border: 2px solid transparent;
+  border-radius: 24px;
+  background-image: 
+    linear-gradient(135deg, 
+      rgba(255, 20, 147, 0.08) 0%, 
+      rgba(147, 112, 219, 0.06) 100%),
+    linear-gradient(135deg, 
+      rgba(255, 20, 147, 0.4), 
+      rgba(255, 215, 0, 0.4));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
               0 0 20px rgba(255, 20, 147, 0.2);
 }
 
 .glass-panel-bright {
   background: linear-gradient(135deg, 
-    rgba(255, 20, 147, 0.12) 0%, 
-    rgba(255, 215, 0, 0.08) 100%);
+    rgba(255, 20, 147, 0.30) 0%, 
+    rgba(255, 215, 0, 0.20) 100%);
   backdrop-filter: blur(16px);
-  border: 2px solid;
-  border-image-slice: 1;
-  border-image-source: linear-gradient(135deg, 
-    rgba(255, 20, 147, 0.6), 
-    rgba(255, 215, 0, 0.6));
-  border-radius: 16px;
+  border: 2px solid transparent;
+  border-radius: 24px;
+  background-image: 
+    linear-gradient(135deg, 
+      rgba(255, 20, 147, 0.30) 0%, 
+      rgba(255, 215, 0, 0.20) 100%),
+    linear-gradient(135deg, 
+      rgba(255, 20, 147, 0.6), 
+      rgba(255, 215, 0, 0.6));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6),
               0 0 30px rgba(255, 20, 147, 0.3),
               inset 0 0 60px rgba(255, 215, 0, 0.05);

@@ -411,6 +411,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             console.log('Skit not over; generate more script.');
             const nextEntries = await generateSkitScript(skit as Skit, stage());
             (skit as Skit).script.push(...nextEntries.entries);
+            // Replace the stage skit with the updated skit:
+            stage().saveData.skits[skit.id] = {...stage().saveData.skits[skit.id], script: (skit as Skit).script};
             stage().saveGame();
             console.log('Generated additional skit content after empty input.');
             return skit;

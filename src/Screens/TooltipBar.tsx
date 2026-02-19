@@ -97,22 +97,17 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                         bottom: '40px',
                         left: '50%',
                         zIndex: 9999,
-                        pointerEvents: 'auto', // Changed from 'none' to allow hover detection
+                        pointerEvents: 'auto',
                     }}
                 >
                     <Box
+                        className="glass-panel-tooltip"
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '12px',
                             padding: '16px 24px',
-                            background: 'linear-gradient(135deg, rgba(36, 7, 65, 0.95) 0%, rgba(26, 10, 46, 0.95) 100%)',
-                            border: '2px solid',
-                            borderImage: 'linear-gradient(135deg, #FF1493, #FFD700) 1',
-                            borderRadius: '12px',
-                            boxShadow: '0 8px 32px rgba(255, 20, 147, 0.3), 0 0 20px rgba(255, 215, 0, 0.2)',
-                            backdropFilter: 'blur(10px)',
                             maxWidth: '50vw',
                             minWidth: 'fit-content',
                             transform: 'translateX(-50%)',

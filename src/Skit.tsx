@@ -485,7 +485,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     // For each actor with an emotion, check if they are flagged for background removal and if the emotion image includes "avatars". If so, trigger background removal for that actor and emotion.
                     for (const [actorId, emotion] of Object.entries(entry.actorEmotions || {})) {
                         const actor = stage.saveData.actors[actorId];
-                        if (actor && actor.flagForBackgroundRemoval && actor.emotionPack[emotion].includes('avatars')) {
+                        if (actor && actor.flagForBackgroundRemoval && actor.emotionPack[emotion] && actor.emotionPack[emotion].includes('avatars')) {
                             await removeBackgroundFromEmotionImage(actor, emotion, stage);
                         }
                     }

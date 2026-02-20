@@ -65,6 +65,7 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
                 message={message} 
                 Icon={icon}
                 onDismiss={clearTooltip}
+                isVerticalLayout={isVerticalLayout}
             />
         </div>
     );

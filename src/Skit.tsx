@@ -232,7 +232,6 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
     const presentActors = Object.values(save.actors).filter(a => presentActorIds.includes(a.id));
     const absentActors = Object.values(save.actors).filter(a => !presentActorIds.includes(a.id));
 
-    const upcomingRound = getUpcomingRoundDescription(stage);
     // Get past skits in chronological order, excluding the current skit
     let pastSkits = stage.getSkitsInOrder().filter(s => s.id !== skit.id);
     // Get the last N skits for history
@@ -243,12 +242,10 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
         `vote on the candidate they think should become ${player.name}'s soulmate, and then Cupid will shoot them both and seal the deal.` +
         `\n\n${player.name}\n  Description: ${player.description}` + // Player has only a description.
         `\n\nCupid\n  Description: ${host.description}\n  Profile: ${host.profile}\n  Motive: ${host.motive}` +
-        `\n\nScene Prompt for Current Round:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
-        `${upcomingRound ? `\n\nUpcoming Round:\n${upcomingRound}` : ''}` +        
         
         ((historyLength > 0 && pastSkits.length) ? 
                 // Include last few skit scripts for context and style reference
-                '\n\nRecent Events for additional context:' + pastSkits.map((v, index) =>  {
+                '\n\nRecent events:' + pastSkits.map((v, index) =>  {
                 if (v && v.script && v.script.length > 0) {
                     return `\n\n  Script of previous round (${v.skitType}):\n${buildScriptLog(stage, v)}`;
                 }
@@ -267,6 +264,7 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
 export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ entries: ScriptEntry[]; endScene: boolean}> {
 
     // Retry logic if response is null or response.result is empty
+    const upcomingRound = getUpcomingRoundDescription(stage);
     let retries = 3;
     while (retries > 0) {
         try {
@@ -281,6 +279,8 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     `${stage.getPlayerActor().name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n` +
                     `\n\n` +
                 `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
+                `\n\nScene Prompt for Current Round:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
+                `${upcomingRound ? `\n\nUpcoming Round:\n${upcomingRound}` : ''}` +
                 `\n\nPrimary Instruction:\n` +
                 `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
                 `based upon the Premise and the specified Scene Prompt. Work toward fulfilling the goal of the Scene Prompt; if this scene's script already feels complete, consider segueing toward the Upcoming Round (but don't start it yet—it is handled in a future skit).` +

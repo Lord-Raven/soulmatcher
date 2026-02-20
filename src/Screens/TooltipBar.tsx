@@ -9,6 +9,7 @@ interface TooltipBarProps {
     visible?: boolean;
     onDismiss?: () => void; // Callback when tooltip is dismissed
     autoDismissMs?: number; // Time in ms before auto-dismissing (default: 3000)
+    isVerticalLayout?: boolean; // Position at top in vertical layout
 }
 
 /**
@@ -21,7 +22,8 @@ export const TooltipBar: FC<TooltipBarProps> = ({
     Icon, 
     visible = true,
     onDismiss,
-    autoDismissMs = 3000
+    autoDismissMs = 3000,
+    isVerticalLayout = false
 }) => {
     const [isHovered, setIsHovered] = useState(false);
     const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -93,7 +95,7 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                     style={{
-                        position: 'fixed',
+                        ...(isVerticalLayout ? { top: '40px' } : { bottom: '40px' }),
                         bottom: '40px',
                         left: '50%',
                         zIndex: 9999,

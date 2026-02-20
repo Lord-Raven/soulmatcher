@@ -229,7 +229,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             fontSize: 'clamp(10px, 1.5vw, 12px)',
                         }}
                     >
-                        {'v2026.02.19 - Early fixes.'}
+                        {'v2026.02.20 - Improving start-up failure handling.'}
                     </motion.div>
                 </motion.div>
             </Box>
@@ -248,7 +248,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
             <ConfirmDialog
                 isOpen={showConfirmNewGame}
                 title="Overwrite Save?"
-                message="Starting a new game will overwrite your existing save. Are you sure you want to continue?"
+                message="Starting a new game will overwrite your existing save. Are you sure you want to continue?<br>(You can start a new chat to avoid this.)"
                 confirmText="Start New Game"
                 cancelText="Cancel"
                 onConfirm={handleConfirmNewGame}

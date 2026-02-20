@@ -4,6 +4,8 @@ import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
 import { Curtain } from './Curtain';
 import { useTheme } from '@mui/material/styles';
+import { useTooltip } from './TooltipContext';
+import { Error } from '@mui/icons-material';
 
 /*
  * Loading screen that displays while content is being loaded.
@@ -24,6 +26,7 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
     const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const theme = useTheme();
+    const { setTooltip, clearTooltip } = useTooltip();
 
     // Poll for completion of loading
     useEffect(() => {
@@ -32,6 +35,11 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
             
             // If all load promises have completed (array is empty), transition to studio screen
             if (!loadPromises || loadPromises.length === 0) {
+                if (Object.values(stage().saveData.actors).length < 7) {
+                    setTooltip('Failed to find and load enough contestants. Adjust settings or try again.', Error);
+                    setScreenType(ScreenType.MENU);
+                    return;
+                }
                 console.log('Done loading');
                 stage().saveGame();
                 setScreenType(ScreenType.STUDIO);
@@ -39,7 +47,7 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
         }, 100);
         
         return () => clearInterval(interval);
-    }, [stage, setScreenType]);
+    }, [stage, setScreenType, setTooltip]);
 
     // Handle phase transitions and progress animation
     useEffect(() => {

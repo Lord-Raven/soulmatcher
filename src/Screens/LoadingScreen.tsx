@@ -95,9 +95,6 @@ export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) 
                 overflow: 'hidden',
             }}
         >
-            {/* Curtain Overlay */}
-            <Curtain position="down" />
-
             {/* Animated background effect */}
             <Box
                 className="grid-overlay"

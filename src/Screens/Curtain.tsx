@@ -49,6 +49,8 @@ export const Curtain: FC<CurtainProps> = ({
             }}
         >
             <motion.div
+                layoutId="app-curtain"
+                initial={false}
                 animate={{
                     y: position === 'down' ? 0 : '-110%',
                 }}

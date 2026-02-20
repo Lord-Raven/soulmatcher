@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { Stage } from '../Stage';
+import { Stage, GamePhase } from '../Stage';
 import { MenuScreen } from './MenuScreen';
 import { LoadingScreen } from './LoadingScreen';
 import { TooltipProvider, useTooltip } from './TooltipContext';
@@ -7,6 +7,7 @@ import TooltipBar from './TooltipBar';
 import { StudioScreen } from './StudioScreen';
 import { ThemeProvider } from '@mui/material';
 import theme from '../theme';
+import { Curtain } from './Curtain';
 
 /*
  * Base screen management; the Stage class will display this, and this will track the current screen being displayed.
@@ -26,6 +27,19 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
     const [screenType, setScreenType] = React.useState<ScreenType>(ScreenType.MENU);
     const [isVerticalLayout, setIsVerticalLayout] = React.useState<boolean>(stage().isVerticalLayout());
     const { message, icon, clearTooltip, setPriorityMessage } = useTooltip();
+
+    // Determine curtain position based on screen type and game phase
+    const getCurtainPosition = (): 'up' | 'down' => {
+        if (screenType === ScreenType.MENU || screenType === ScreenType.LOADING) {
+            return 'down';
+        }
+        if (screenType === ScreenType.STUDIO) {
+            const currentPhase = stage().getCurrentPhase();
+            // Curtain is down during epilogue phase
+            return currentPhase === GamePhase.EPILOGUE ? 'down' : 'up';
+        }
+        return 'down';
+    };
 
     // Set up the priority message callback in the stage
     React.useEffect(() => {
@@ -58,7 +72,16 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
             )}
             {screenType === ScreenType.STUDIO && (
                 // Render studio screen
-                <StudioScreen stage={stage} setScreenType={setScreenType} isVerticalLayout={isVerticalLayout} />
+                <StudioScreen 
+                    stage={stage} 
+                    setScreenType={setScreenType} 
+                    isVerticalLayout={isVerticalLayout}
+                    curtainPosition={getCurtainPosition()}
+                />
+            )}
+            {/* Unified curtain for non-Studio screens */}
+            {screenType !== ScreenType.STUDIO && (
+                <Curtain position={getCurtainPosition()} zIndex={5} />
             )}
             {/* Unified tooltip bar that renders over all screens */}
             <TooltipBar 

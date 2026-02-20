@@ -4,7 +4,6 @@ import { ScreenType } from "./BaseScreen";
 import { useTooltip } from "./TooltipContext";
 import { FiberNew, PlayArrow, Settings } from "@mui/icons-material";
 import { SettingsScreen } from "./SettingsScreen";
-import { Curtain } from "./Curtain";
 import { BlurredBackground } from "@lord-raven/novel-visualizer";
 import { Button, GridOverlay, Title, ConfirmDialog } from "./UIComponents";
 import { motion } from "framer-motion";

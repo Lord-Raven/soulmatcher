@@ -8,19 +8,20 @@ import { Emotion } from "../Emotion";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import { LastPage, PlayArrow, Send } from "@mui/icons-material";
 import { CandidateSelectionUI } from "./CandidateSelectionUI";
-import { Curtain } from "./Curtain";
 import { useCallback } from "react";
 import { NamePlate } from "./UIComponents";
 import { useTooltip } from "./TooltipContext";
+import { Curtain } from "./Curtain";
 
 interface StudioScreenProps {
     stage: () => Stage;
     setScreenType: (type: ScreenType) => void;
     isVerticalLayout: boolean;
+    curtainPosition: 'up' | 'down';
 }
 
 // This screen represents the main game screen in a gameshow studio setting. The player will make some basic choices that lead to different skits and direct the flow of the game.
-export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVerticalLayout }) => {
+export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVerticalLayout, curtainPosition }) => {
     const [showSelectionUI, setShowSelectionUI] = useState(false);
     const [isGeneratingNextSkit, setIsGeneratingNextSkit] = useState(false);
     const [finalVoteResult, setFinalVoteResult] = useState<{
@@ -232,15 +233,6 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
         }
     };
 
-    // Determine curtain position based on game phase
-    const getCurtainPosition = (): 'up' | 'down' => {
-        // Curtain is down during initial phases and epilogue
-        const phasesCurtainDown = [
-            GamePhase.EPILOGUE
-        ];
-        
-        return phasesCurtainDown.includes(currentPhase) ? 'down' : 'up';
-    };
 
     const buildFinalVotePrompt = (candidates: Actor[]): string => {
         const player = stage().getPlayerActor();
@@ -635,7 +627,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 );
             }}
             getBackgroundImageUrl={(script, index: number) => {return (script as Skit).locationImageUrl || ''}}
-            backgroundElements={<Curtain position={getCurtainPosition()} zIndex={10} />}
+            backgroundElements={<Curtain position={curtainPosition} zIndex={10} />}
             setTooltip={setTooltip}
             isVerticalLayout={isVerticalLayout}
             actors={stage().saveData.actors}
@@ -651,7 +643,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             }}
             onSubmitInput={handleSubmit}
             getSubmitButtonConfig={(script, index, inputText) => {
-                const endScene = (script as Skit).script[index]?.endScene || false;
+                const endScene = index >= 0 ? ((script as Skit).script[index]?.endScene || false) : false;
                 return {
                     label: (inputText.trim().length > 0 ? 'Send' : (endScene ? 'Next Round' : 'Continue')),
                     enabled: true,

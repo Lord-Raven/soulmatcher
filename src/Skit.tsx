@@ -1,4 +1,4 @@
-import { Actor, findBestNameMatch } from "./Actor";
+import { Actor, findBestNameMatch, removeBackgroundFromEmotionImage } from "./Actor";
 import { Emotion, EMOTION_MAPPING } from "./Emotion";
 import { Stage, GamePhase } from "./Stage";
 
@@ -452,7 +452,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 }
 
                 // TTS for each entry's dialogue
-                const ttsPromises = scriptEntries.map(async (entry) => {
+                const postProcessPromises = scriptEntries.map(async (entry) => {
                     const actor = stage.saveData.actors[entry.speakerId] || null;
                     // Only TTS if entry.speaker matches an actor from stage().getSave().actors and entry.message includes dialogue in quotes.
                     if (!actor || !entry.message.includes('"') || stage.saveData.disableTextToSpeech || !actor.voiceId) {
@@ -477,6 +477,16 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                         entry.speechUrl = '';
                     }
                 });
+
+                scriptEntries.map(async (entry) => {
+                    // For each actor with an emotion, check if they are flagged for background removal and if the emotion image includes "avatars". If so, trigger background removal for that actor and emotion.
+                    for (const [actorId, emotion] of Object.entries(entry.actorEmotions || {})) {
+                        const actor = stage.saveData.actors[actorId];
+                        if (actor && actor.flagForBackgroundRemoval && actor.emotionPack[emotion].includes('avatars')) {
+                            await removeBackgroundFromEmotionImage(actor, emotion, stage);
+                        }
+                    }
+                }).forEach(p => postProcessPromises.push(p));
 
                 // Run a prompt to detect whether the script has reached a natural conclusion or scene change. Add the promise to the ttsPromises so it runs concurrently.
                 const sceneCompletionPromise = (async () => {
@@ -520,10 +530,10 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     }
                 })();
                 
-                ttsPromises.push(sceneCompletionPromise);
+                postProcessPromises.push(sceneCompletionPromise);
 
                 // Wait for all TTS generation and scene completion check to complete
-                await Promise.all(ttsPromises);
+                await Promise.all(postProcessPromises);
 
                 // Attach endScene and endProperties to the final entry if the scene ended
                 if (endScene && scriptEntries.length > 0) {

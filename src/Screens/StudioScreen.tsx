@@ -643,9 +643,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
             getActorImageUrl={(actor, script, index: number) => {
                 const emotion = determineEmotion(actor.id, script as Skit, index);
-                // If this actor is flagged for background removal and the emotion image URL has "avatars" in it, it's part of an official pack that was determined to be non-transparent; kick off removal.
+                // If this actor is flagged for background removal and the emotion image URL has "avatars" in it, it's part of an official pack that was determined to be non-transparent; use neutral for now.
                 if (actor.flagForBackgroundRemoval && actor.emotionPack[emotion].includes('avatars')) {
-                    removeBackgroundFromEmotionImage(actor, emotion, stage());
                     return actor.emotionPack[Emotion.neutral] || '';
                 }
                 return actor.emotionPack[emotion] || actor.emotionPack[Emotion.neutral] || '';

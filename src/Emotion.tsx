@@ -34,9 +34,10 @@ export enum Emotion {
 export const EMOTION_SYNONYMS: {[key in Emotion]: string[]} = {
     neutral: ['calm', 'placid', 'serene', 'tranquil', 'stoic', 'neutrality', 'composed', 'composure', 'unemotional', 'impassive', 'impassivity', 'indifferent', 'indifference'],
     admiration: ['admire', 'admiring', 'respect', 'respectful', 'esteem', 'esteemed', 'reverence', 'revere', 'regard', 'veneration', 'awe', 'impressed'],
-    amusement: ['amused', 'entertained', 'entertainment', 'humor', 'humorous', 'jovial', 'joviality', 'playfulness', 'playful', 'funny', 'witty', 'wittiness', 'lighthearted', 'comical'],
+    amusement: ['amused', 'entertained', 'entertainment', 'humor', 'humorous', 'jovial', 'joviality', 'playfulness', 'playful', 'funny', 'witty', 'wittiness', 'lighthearted', 'comical', 'mischief', 'mischievous'],
     anger: ['angry', 'furious', 'fury', 'enraged', 'livid', 'wrath', 'wrathful', 'ire', 'rage', 'mad', 'outraged', 'irate', 'hostile', 'hostility'],
-    annoyance: ['annoyed', 'irritated', 'irritation', 'frustrated', 'frustration', 'exasperated', 'exasperation', 'vexed', 'aggravated', 'aggravation', 'peeved', 'miffed', 'irked', 'indignation', 'indignant', 'bothered'],
+    annoyance: ['annoyed', 'irritated', 'irritation', 'frustrated', 'frustration', 'exasperated', 'exasperation', 'vexed', 'aggravated', 'aggravation', 'peeved', 'miffed',
+         'irked', 'indignation', 'indignant', 'impatience', 'impatient', 'bothered'],
     approval: ['pleased', 'satisfaction', 'satisfied', 'enjoyment', 'enjoying', 'content', 'contentedness', 'contentment', 'cheerfulness', 'cheerful', 'favorable', 'acceptance', 'accepting'],
     caring: ['compassionate', 'compassion', 'kindness', 'kind', 'considerate', 'consideration', 'sympathy', 'sympathetic', 'empathy', 'empathetic', 'tender', 'tenderness', 'gentle', 'nurturing', 'supportive', 'support', 'warmth'],
     confusion: ['confused', 'perplexed', 'bewildered', 'puzzled', 'baffled', 'uncertain', 'uncertainty', 'disoriented', 'disorientation', 'mystified', 'befuddled'],

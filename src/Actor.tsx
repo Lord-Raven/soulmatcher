@@ -13,6 +13,7 @@ export class Actor {
     type: ActorType = ActorType.CONTESTANT; // Default to CONTESTANT
     name: string = ''; // Display name
     fullPath: string = ''; // Path to original character definition
+    forkPath?: string; // If this character is a fork of another, the path to the original character definition
     avatarImageUrl: string = ''; // Original reference image
     description: string = ''; // Physical description of character
     profile: string = ''; // Obvious personality profile description of character
@@ -71,7 +72,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
                     console.log(`Discarding ${dataName}'s emotion pack due to small image size: ${pack.expressions['neutral']}`);
                     return false;
                 } else if (!isTransparent) {
-                    if (stage.saveData.removeBackgrounds && stage.betaMode) {
+                    if (stage.saveData.removeBackgrounds) {
                         console.log(`Flagging ${dataName}'s emotion pack for background removal: ${pack.expressions['neutral']}`);
                         flagForBackgroundRemoval = true;
                         return true;

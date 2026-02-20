@@ -285,16 +285,11 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         return null;
     }
 
-    if (newActor.flagForBackgroundRemoval) {
-        console.log(`Remove background from ${newActor.name}'s neutral image.`);
-        await removeBackgroundFromEmotionImage(newActor, Emotion.neutral, stage);
-    }
-
     return newActor;
 }
 
 // Remove the background from a target emotion image in actor's emotionPack using stage.generator.removeBackground.
-async function removeBackgroundFromEmotionImage(actor: Actor, emotion: Emotion, stage: Stage): Promise<void> {
+export async function removeBackgroundFromEmotionImage(actor: Actor, emotion: Emotion, stage: Stage): Promise<void> {
     const imageUrl = actor.emotionPack[emotion];
     if (!imageUrl) return;
     try {

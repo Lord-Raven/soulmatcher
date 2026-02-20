@@ -1,9 +1,10 @@
 import {ReactElement} from "react";
 import {StageBase, StageResponse, InitialData, Message, Character, User} from "@chub-ai/stages-ts";
 import {LoadResponse} from "@chub-ai/stages-ts/dist/types/load";
-import { Actor, loadReserveActorFromFullPath } from "./Actor";
+import { Actor, loadReserveActorFromFullPath, findBestNameMatch, removeBackgroundFromEmotionImage } from "./Actor";
 import { generateSkitScript, Skit, SkitType } from "./Skit";
 import { BaseScreen } from "./Screens/BaseScreen";
+import { Emotion } from "./Emotion";
 
 type MessageStateType = any;
 type ConfigType = any;
@@ -213,6 +214,8 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         console.log('Starting contestant loading...');
         // Clear any existing load promises
         this.loadPromises = [];
+
+        let beenToStart = false;
         
         // Create the asynchronous contestant loading promise
         const contestantLoadPromise = (async () => {
@@ -246,8 +249,44 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                     }
                 }));
 
-                reserveActors = [...reserveActors, ...newActors.filter(a => a !== null)];
+                // Remove null actors
+                const nonNullActors = newActors.filter(a => a !== null);
+
+                // Remove internal duplicates within newActors (in case two near-duplicates came in same batch)
+                const uniqueNewActors = nonNullActors.filter((actor, index, self) => {
+                    return !findBestNameMatch(actor.name, self.slice(0, index));
+                });
+
+                // Remove duplicates against existing reserveActors
+                const validNewActors = uniqueNewActors.filter(a => {
+                    return findBestNameMatch(a.name, reserveActors) === null;
+                });
+
+                // Cut down validNewActors length if it will put us over the needed contestant count.
+                const slotsLeft = this.CONTESTANT_COUNT - reserveActors.length;
+                const actorsToAdd = validNewActors.slice(0, slotsLeft);
+
+                // Need to do background removal for neutrals if flagged.
+                console.log(`Potentially removing backgrounds.`);
+                actorsToAdd.forEach(async actor => { 
+                    if (actor.flagForBackgroundRemoval) {
+                        console.log(`Remove background from ${actor.name}'s neutral image.`);
+                        await removeBackgroundFromEmotionImage(actor, Emotion.neutral, this);
+                    }});
+                console.log('Done removing backgrounds.');
+
+                reserveActors = [...reserveActors, ...actorsToAdd];
+
                 if (reserveActors.length < this.CONTESTANT_COUNT) {
+                    if (this.actorPageNumber == 1) {
+                        if (!beenToStart) {
+                            beenToStart = true;
+                        } else {
+                            // We have to have exhausted everything at this point. Need to give up and leave a tooltip.
+                            this.showPriorityMessage(`Unable to find ample eligible candidates with current search parameters. Adjust tags or enable background removal to expand the field.`, 5000);
+                            throw new Error('Exhausted all character search results without finding enough valid contestants.');
+                        }
+                    }
                     console.log(`Only found ${reserveActors.length} valid contestants so far; continuing search...`);
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 } else {

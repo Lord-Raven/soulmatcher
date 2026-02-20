@@ -95,8 +95,8 @@ export const TooltipBar: FC<TooltipBarProps> = ({
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                     style={{
+                        position: 'fixed',
                         ...(isVerticalLayout ? { top: '40px' } : { bottom: '40px' }),
-                        bottom: '40px',
                         left: '50%',
                         zIndex: 9999,
                         pointerEvents: 'auto',

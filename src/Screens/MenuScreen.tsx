@@ -137,6 +137,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 }}
             >
                 {/* Curtain Overlay */}
+                
                 <Curtain position="down" />
 
                 {/* Background grid effect */}

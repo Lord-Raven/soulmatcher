@@ -79,10 +79,6 @@ const BaseScreenContent: FC<{ stage: () => Stage }> = ({ stage }) => {
                     curtainPosition={getCurtainPosition()}
                 />
             )}
-            {/* Unified curtain for non-Studio screens */}
-            {screenType !== ScreenType.STUDIO && (
-                <Curtain position={getCurtainPosition()} zIndex={5} />
-            )}
             {/* Unified tooltip bar that renders over all screens */}
             <TooltipBar 
                 message={message} 

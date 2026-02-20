@@ -8,6 +8,7 @@ import { BlurredBackground } from "@lord-raven/novel-visualizer";
 import { Button, GridOverlay, Title, ConfirmDialog } from "./UIComponents";
 import { motion } from "framer-motion";
 import { Box } from "@mui/material";
+import { Curtain } from './Curtain';
 
 interface MenuScreenProps {
     stage: () => Stage;
@@ -137,7 +138,6 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                 }}
             >
                 {/* Curtain Overlay */}
-                
                 <Curtain position="down" />
 
                 {/* Background grid effect */}

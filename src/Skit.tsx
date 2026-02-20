@@ -543,6 +543,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
 
                 stage.pushMessage(text);
 
+                stage.saveGame();
                 return { entries: scriptEntries, endScene: endScene };
             }
         } catch (error) {

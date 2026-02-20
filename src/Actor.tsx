@@ -299,7 +299,6 @@ export async function removeBackgroundFromEmotionImage(actor: Actor, emotion: Em
         } else {
             console.log(`Background removed for ${actor.name}'s ${emotion} emotion. Updating emotion pack to ${response?.url}.`);
             actor.emotionPack[emotion] = response?.url ?? imageUrl;
-            stage.saveGame();
         }
     } catch (error) {
         console.error(`Error removing background`, error);

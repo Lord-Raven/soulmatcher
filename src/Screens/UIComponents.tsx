@@ -7,7 +7,7 @@
 import React, { FC, ReactNode } from 'react';
 import { Actor } from '../Actor';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HourglassTop, HourglassBottom, OpenInNew, Link } from '@mui/icons-material';
+import { HourglassTop, HourglassBottom, Link } from '@mui/icons-material';
 import { Box, lighten, Button as MuiButton, Chip as MuiChip, Typography } from '@mui/material';
 import { useTooltip } from './TooltipContext';
 
@@ -207,12 +207,18 @@ export const NamePlate: FC<NamePlateProps> = ({
 	const lightColor = lighten(themeColor, 0.5);
 	const { setTooltip, clearTooltip } = useTooltip();
 
-	const hoverText = actor.fullPath ? `${actor.name} by ${actor.fullPath.split('/')[0]}` : '';
+	const hoverText = actor.fullPath ? `Visit ${actor.name} by ${actor.fullPath.split('/')[0]}` : '';
 	const link = actor.fullPath ? `https://chub.ai/characters/${actor.fullPath}` : null;
 
 	return (
 		<Box
+			component={link ? 'a' : 'div'}
+			href={link || undefined}
+			target={link ? '_blank' : undefined}
+			rel={link ? 'noopener noreferrer' : undefined}
 			className={className}
+			onMouseEnter={() => link && setTooltip(hoverText, Link)}
+			onMouseLeave={clearTooltip}
 			sx={{
 				display: 'inline-flex',
 				alignItems: 'center',
@@ -234,11 +240,12 @@ export const NamePlate: FC<NamePlateProps> = ({
 				boxShadow: `0 6px 16px rgba(0, 0, 0, 0.5), 0 0 15px ${themeColor}40`,
 				color: lightColor,
 				textShadow: `0 0 8px ${themeColor}80, 0 2px 4px rgba(0, 0, 0, 0.8)`,
-				letterSpacing: '0.04em',
 				fontWeight: 700,
-				fontSize: '1.4rem',
-				padding: '6px 4px',
+				fontSize: '1.2rem',
+				padding: '2px 6px',
 				minHeight: '30px',
+				cursor: link ? 'pointer' : 'default',
+				textDecoration: 'none',
 				...style,
 				'&::after': {
 					content: '""',
@@ -259,26 +266,6 @@ export const NamePlate: FC<NamePlateProps> = ({
 				}}
 			>
 				{actor.name}
-				{link && (
-					<OpenInNew
-						onMouseEnter={() => setTooltip(hoverText, Link)}
-						onMouseLeave={clearTooltip}
-						onClick={(e) => {
-							e.stopPropagation();
-							window.open(link, '_blank');
-						}}
-						style={{
-							marginLeft: '6px',
-							fontSize: '0.85em',
-							cursor: 'pointer',
-							verticalAlign: 'middle',
-							opacity: 0.8,
-							transition: 'opacity 0.2s ease'
-						}}
-						onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
-						onMouseOut={(e) => e.currentTarget.style.opacity = '0.8'}
-					/>
-				)}
 			</span>
 		</Box>
 	);

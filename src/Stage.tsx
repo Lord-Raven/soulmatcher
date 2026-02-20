@@ -338,7 +338,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 this.loadPromises.splice(index, 1);
             }
         });
-        
+
         this.loadPromises.push(gameIntroPromise);
         // Don't await - let it run in the background
     }

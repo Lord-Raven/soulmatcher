@@ -118,6 +118,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 removeBackgrounds: false,
             };
         }
+        console.log(this.saveData);
     }
 
     async load(): Promise<Partial<LoadResponse<InitStateType, ChatStateType, MessageStateType>>> {

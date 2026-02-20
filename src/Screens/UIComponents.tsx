@@ -204,7 +204,7 @@ export const NamePlate: FC<NamePlateProps> = ({
 	}
 
 	const themeColor = actor.themeColor || '#FFD700';
-	const lightColor = lighten(themeColor, 0.5);
+	const lightColor = lighten(themeColor, 0.6);
 	const { setTooltip, clearTooltip } = useTooltip();
 
 	const hoverText = actor.fullPath ? `Visit ${actor.name} by ${actor.fullPath.split('/')[0]}` : '';

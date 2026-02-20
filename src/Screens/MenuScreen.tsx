@@ -248,7 +248,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
             <ConfirmDialog
                 isOpen={showConfirmNewGame}
                 title="Overwrite Save?"
-                message="Starting a new game will overwrite your existing save. Are you sure you want to continue?\n(You can start a new chat to avoid this.)"
+                message="Starting a new game will overwrite your existing save. Are you sure you want to continue? (You can start a new chat to avoid this.)"
                 confirmText="Start New Game"
                 cancelText="Cancel"
                 onConfirm={handleConfirmNewGame}

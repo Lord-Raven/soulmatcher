@@ -37,6 +37,9 @@ export const Curtain: FC<CurtainProps> = ({
     zIndex = 5,
     children
 }) => {
+    const targetY = position === 'down' ? 0 : '-110%';
+    const initialY = position === 'down' ? '-110%' : 0;
+
     return (
         <Box
             sx={{
@@ -50,9 +53,11 @@ export const Curtain: FC<CurtainProps> = ({
         >
             <motion.div
                 layoutId="app-curtain"
-                initial={false}
+                initial={{
+                    y: initialY,
+                }}
                 animate={{
-                    y: position === 'down' ? 0 : '-110%',
+                    y: targetY,
                 }}
                 transition={{
                     duration: 0.6,

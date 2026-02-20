@@ -46,6 +46,7 @@ type ChatStateType = {
     includeTags?: string[];
     spice?: number;  // 1-3 scale for content rating (1=flirty, 2=dirty, 3=explicit)
     gameProgress: GameProgressState;
+    removeBackgrounds?: boolean;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
@@ -79,17 +80,21 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
     saveData: ChatStateType;
     primaryUser: User
     primaryCharacter: Character;
+    betaMode = false;
 
     constructor(data: InitialData<InitStateType, ChatStateType, MessageStateType, ConfigType>) {
         super(data);
         const {
             users,
             characters,
-            chatState
+            chatState,
+            config
         } = data;
 
         this.primaryUser = Object.values(users)[0];
         this.primaryCharacter = Object.values(characters)[0];
+
+        this.betaMode = config?.beta_mode === "True";
 
         if (chatState) {
             this.saveData = chatState;
@@ -108,7 +113,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 language: 'English',
                 bannedTags: [],
                 includeTags: ['Male', 'Female', 'Transgender', 'Nonbinary', 'Futanari'],
+                spice: 2,
                 gameProgress: this.createInitialGameProgress(),
+                removeBackgrounds: false,
             };
         }
     }

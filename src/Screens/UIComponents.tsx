@@ -7,8 +7,8 @@
 import React, { FC, ReactNode } from 'react';
 import { Actor } from '../Actor';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HourglassTop, HourglassBottom, OpenInNew } from '@mui/icons-material';
-import { Box, Button as MuiButton, Chip as MuiChip, Typography } from '@mui/material';
+import { HourglassTop, HourglassBottom, OpenInNew, Link } from '@mui/icons-material';
+import { Box, lighten, Button as MuiButton, Chip as MuiChip, Typography } from '@mui/material';
 import { useTooltip } from './TooltipContext';
 
 /* ===============================================
@@ -204,6 +204,7 @@ export const NamePlate: FC<NamePlateProps> = ({
 	}
 
 	const themeColor = actor.themeColor || '#FFD700';
+	const lightColor = lighten(themeColor, 0.5);
 	const { setTooltip, clearTooltip } = useTooltip();
 
 	const hoverText = actor.fullPath ? `${actor.name} by ${actor.fullPath.split('/')[0]}` : '';
@@ -219,23 +220,25 @@ export const NamePlate: FC<NamePlateProps> = ({
 				position: 'relative',
 				overflow: 'hidden',
 				borderRadius: '10px',
-				background: 'linear-gradient(135deg, rgba(40, 25, 70, 0.65) 0%, rgba(55, 35, 85, 0.6) 100%)',
+				background: `linear-gradient(135deg, rgba(40, 25, 70, 0.65) 0%, rgba(55, 35, 85, 0.6) 100%), 
+					radial-gradient(circle at 50% 50%, ${themeColor}15, transparent 70%)`,
 				backdropFilter: 'blur(12px)',
 				border: '2px solid transparent',
 				backgroundImage: `
 					linear-gradient(135deg, rgba(40, 25, 70, 0.65) 0%, rgba(55, 35, 85, 0.6) 100%),
-					linear-gradient(135deg, rgba(255, 20, 147, 0.6), rgba(255, 215, 0, 0.6))
+					radial-gradient(circle at 50% 50%, ${themeColor}15, transparent 70%),
+					linear-gradient(135deg, ${themeColor}, ${themeColor})
 				`,
 				backgroundOrigin: 'border-box',
-				backgroundClip: 'padding-box, border-box',
-				boxShadow: '0 6px 16px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 20, 147, 0.2)',
-				color: themeColor,
+				backgroundClip: 'padding-box, padding-box, border-box',
+				boxShadow: `0 6px 16px rgba(0, 0, 0, 0.5), 0 0 15px ${themeColor}40`,
+				color: lightColor,
 				textShadow: `0 0 8px ${themeColor}80, 0 2px 4px rgba(0, 0, 0, 0.8)`,
 				letterSpacing: '0.04em',
 				fontWeight: 700,
 				fontSize: '1.4rem',
-				padding: '6px 12px',
-				minHeight: '32px',
+				padding: '6px 4px',
+				minHeight: '30px',
 				...style,
 				'&::after': {
 					content: '""',
@@ -258,7 +261,7 @@ export const NamePlate: FC<NamePlateProps> = ({
 				{actor.name}
 				{link && (
 					<OpenInNew
-						onMouseEnter={() => setTooltip(hoverText)}
+						onMouseEnter={() => setTooltip(hoverText, Link)}
 						onMouseLeave={clearTooltip}
 						onClick={(e) => {
 							e.stopPropagation();

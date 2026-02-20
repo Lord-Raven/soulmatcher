@@ -643,6 +643,9 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
             getActorImageUrl={(actor, script, index: number) => {
                 const emotion = determineEmotion((actor as Actor).id, script as Skit, index);
+                if (actor.flagForBackgroundRemoval) {
+                    // TODO: If the actor is flagged for background removal, ensure we return only emotion images that has had background removed (otherwise, return neutral):
+                }
                 return (actor as Actor).emotionPack[emotion] || (actor as Actor).emotionPack[Emotion.neutral] || '';
             }}
             onSubmitInput={handleSubmit}

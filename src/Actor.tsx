@@ -1,5 +1,5 @@
 import { v4 as generateUuid } from 'uuid';
-import { EmotionPack } from './Emotion';
+import { Emotion, EmotionPack } from './Emotion';
 import { Stage } from './Stage';
 
 export enum ActorType {
@@ -21,6 +21,7 @@ export class Actor {
     themeColor: string = ''; // Theme color (hex code)
     themeFontFamily: string = ''; // Font family stack for CSS styling
     voiceId: string = ''; // Voice ID
+    flagForBackgroundRemoval?: boolean; // Use to indicate that a character's emotionPack images should have backgrounds removed.
 
     /**
      * Rehydrate an Actor from saved data
@@ -47,6 +48,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
     const candidatePacks = [item.node.definition.extensions?.chub?.expressions ?? null, ...Object.values(item.node.definition.extensions?.chub?.alt_expressions ?? {})]
         .filter(pack => pack !== null && Object.values(pack.expressions).some(imageUrl => !(imageUrl as String).includes("emotions/1/")) && pack.expressions['neutral'] && !pack.expressions['neutral'].includes("emotions/1/"));
     
+    let flagForBackgroundRemoval = false;
     // Check each pack asynchronously for transparency and size requirements
     const packChecks = await Promise.all(
         candidatePacks.map(async pack => {
@@ -65,17 +67,23 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
                 const pixelData = ctx.getImageData(0, 0, 1, 1).data;
                 // Check if the pixel is transparent (alpha value of 0)
                 const isTransparent = pixelData[3] === 0;
-                if (!isTransparent) {
-                    console.log(`Discarding emotion pack due to non-transparent pixels: ${pack.expressions['neutral']}`);
+                if (imgBitmap.width < 400 || imgBitmap.height < 600) {
+                    console.log(`Discarding ${dataName}'s emotion pack due to small image size: ${pack.expressions['neutral']}`);
                     return false;
-                } else if (imgBitmap.width < 400 || imgBitmap.height < 600) {
-                    console.log(`Discarding emotion pack due to small image size: ${pack.expressions['neutral']}`);
-                    return false;
-                }
+                } else if (!isTransparent) {
+                    if (stage.saveData.removeBackgrounds && stage.betaMode) {
+                        console.log(`Flagging ${dataName}'s emotion pack for background removal: ${pack.expressions['neutral']}`);
+                        flagForBackgroundRemoval = true;
+                        return true;
+                    } else {
+                        console.log(`Discarding ${dataName}'s emotion pack due to non-transparent pixels: ${pack.expressions['neutral']}`);
+                        return false;
+                    }
+                } 
                 return true;
             } catch (error) {
                 // Failed to fetch avatar image.
-                console.log(`Discarding actor due to failed avatar image fetch: ${data.name}`);
+                console.log(`Discarding actor due to failed avatar image fetch: ${dataName}`);
                 return false;
             }
         })
@@ -101,6 +109,7 @@ export async function loadReserveActorFromFullPath(fullPath: string, stage: Stag
                 value.includes("emotions/1/") ? [key, undefined] : [key, value]
             )
         ),
+        flagForBackgroundRemoval: flagForBackgroundRemoval,
     };
     return loadReserveActor(data, stage);
 }
@@ -247,6 +256,7 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         themeColor: themeColor,
         font: parsedData['font'] || 'Arial, sans-serif',
         emotionPack: data.emotionPack || {},
+        flagForBackgroundRemoval: data.flagForBackgroundRemoval || false,
     });
     console.log(`Loaded new actor: ${newActor.name} (ID: ${newActor.id})`);
     console.log(newActor);
@@ -275,7 +285,29 @@ export async function loadReserveActor(data: any, stage: Stage): Promise<Actor|n
         return null;
     }
 
+    if (newActor.flagForBackgroundRemoval) {
+        console.log(`Remove background from ${newActor.name}'s neutral image.`);
+        await removeBackgroundFromEmotionImage(newActor, Emotion.neutral, stage);
+    }
+
     return newActor;
+}
+
+// Remove the background from a target emotion image in actor's emotionPack using stage.generator.removeBackground.
+async function removeBackgroundFromEmotionImage(actor: Actor, emotion: Emotion, stage: Stage): Promise<void> {
+    const imageUrl = actor.emotionPack[emotion];
+    if (!imageUrl) return;
+    try {
+        const response = await stage.generator.removeBackground({image: imageUrl});
+        if (!response?.url) {
+            console.error(`Background removal failed for ${actor.name}'s ${emotion} emotion. Keeping original image.`);
+        } else {
+            console.log(`Background removed for ${actor.name}'s ${emotion} emotion. Updating emotion pack to ${response?.url}.`);
+            actor.emotionPack[emotion] = response?.url ?? imageUrl;
+        }
+    } catch (error) {
+        console.error(`Error removing background`, error);
+    }
 }
 
 /**

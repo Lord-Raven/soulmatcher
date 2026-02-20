@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Stage } from '../Stage';
 import { GlassPanel, Title, Button, TextInput } from './UIComponents';
 import { Curtain } from './Curtain';
-import { Close } from '@mui/icons-material';
+import { Close, HideImage, VoiceChat } from '@mui/icons-material';
+import { useTooltip } from './TooltipContext';
 
 interface SettingsScreenProps {
     stage: () => Stage;
@@ -16,12 +17,14 @@ interface SettingsData {
     playerName: string;
     playerDescription: string;
     disableTextToSpeech: boolean;
+    removeExpressionBackgrounds: boolean;
     tagToggles: { [key: string]: boolean };
     language: string;
     spice: number;  // 1-3 scale for content rating
 }
 
 export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onConfirm, isNewGame = false }) => {
+    const { setTooltip, clearTooltip } = useTooltip();
 
     // Common languages for autocomplete
     const commonLanguages = [
@@ -58,7 +61,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
     const [settings, setSettings] = useState<SettingsData>({
         playerName: stage().getPlayerActor()?.name || stage().primaryUser?.name || 'Player',
         playerDescription: stage().getPlayerActor()?.description || stage().primaryUser?.chatProfile ||'An enimgmatic contestant on Soulmatcher!',
-        disableTextToSpeech: stage().saveData.disableTextToSpeech ?? false,
+        disableTextToSpeech: !(stage().saveData.disableTextToSpeech ?? false),
+        removeExpressionBackgrounds: stage().saveData.removeBackgrounds ?? false,
         language: stage().saveData.language || 'English',
         spice: stage().saveData.spice ?? 2,  // Default to middle of scale
         // Tag toggles; banTagMap toggles default to true (enabled), includeTagMap toggles default to false (disabled).
@@ -97,7 +101,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
             .map(key => includeTagMap[key] ? includeTagMap[key] : [key])
             .flat();
         
-        stage().saveData.disableTextToSpeech = settings.disableTextToSpeech;
+        stage().saveData.disableTextToSpeech = !settings.disableTextToSpeech;
+        stage().saveData.removeBackgrounds = settings.removeExpressionBackgrounds;
         stage().saveData.language = settings.language;
         stage().saveData.spice = settings.spice;
         
@@ -309,11 +314,13 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                     Show Settings
                                 </label>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    {/* Disable Text to Speech Toggle */}
+                                    {/* Text-to-Speech Toggle */}
                                     <motion.div
                                         whileHover={{ scale: 1.01 }}
                                         whileTap={{ scale: 0.99 }}
                                         onClick={() => setSettings(prev => ({ ...prev, disableTextToSpeech: !prev.disableTextToSpeech }))}
+                                        onMouseEnter={() => setTooltip('Disable Text-to-Speech to conserve credits.', VoiceChat)}
+                                        onMouseLeave={clearTooltip}
                                         style={{
                                             padding: '12px',
                                             background: settings.disableTextToSpeech
@@ -365,7 +372,69 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 fontWeight: settings.disableTextToSpeech ? 'bold' : 'normal',
                                             }}
                                         >
-                                            Disable Text to Speech
+                                            Text-to-Speech
+                                        </span>
+                                    </motion.div>
+
+                                    {/* Remove Expression Backgrounds Toggle */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => setSettings(prev => ({ ...prev, removeExpressionBackgrounds: !prev.removeExpressionBackgrounds }))}
+                                        onMouseEnter={() => setTooltip('Remove backgrounds from packs; expands eligible characters but costs credits.', HideImage)}
+                                        onMouseLeave={clearTooltip}
+                                        style={{
+                                            padding: '12px',
+                                            background: settings.removeExpressionBackgrounds
+                                                ? 'rgba(255, 20, 147, 0.15)'
+                                                : 'rgba(36, 7, 65, 0.7)',
+                                            border: settings.removeExpressionBackgrounds
+                                                ? '2px solid rgba(255, 20, 147, 0.5)'
+                                                : '2px solid rgba(255, 215, 0, 0.3)',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        <div
+                                            style={{
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '4px',
+                                                background: settings.removeExpressionBackgrounds ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
+                                                border: '2px solid ' + (settings.removeExpressionBackgrounds ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                                transition: 'all 0.2s ease',
+                                            }}
+                                        >
+                                            {settings.removeExpressionBackgrounds && (
+                                                <motion.span
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    style={{
+                                                        color: '#FFFFFF',
+                                                        fontSize: '14px',
+                                                        fontWeight: 'bold',
+                                                    }}
+                                                >
+                                                    ✓
+                                                </motion.span>
+                                            )}
+                                        </div>
+                                        <span
+                                            style={{
+                                                color: settings.removeExpressionBackgrounds ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
+                                                fontSize: '13px',
+                                                fontWeight: settings.removeExpressionBackgrounds ? 'bold' : 'normal',
+                                            }}
+                                        >
+                                            Remove Expression Backgrounds
                                         </span>
                                     </motion.div>
 

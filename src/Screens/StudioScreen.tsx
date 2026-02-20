@@ -2,7 +2,7 @@ import { Stage, GamePhase } from "../Stage";
 import { Skit, SkitType, buildScriptLog, generateSkitScript } from "../Skit";
 import { FC, useEffect, useRef, useState } from "react";
 import { ScreenType } from "./BaseScreen";
-import { Actor, findBestNameMatch } from "../Actor";
+import { Actor, findBestNameMatch, removeBackgroundFromEmotionImage } from "../Actor";
 import { NovelVisualizer } from "@lord-raven/novel-visualizer";
 import { Emotion } from "../Emotion";
 import { Box, CircularProgress, Typography } from "@mui/material";
@@ -642,11 +642,13 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             playerActorId={stage().getPlayerActor().id}
             getPresentActors={(script, index: number) => (script as Skit).presentActors?.map(actorId => stage().saveData.actors[actorId]).filter(actor => actor) || []}
             getActorImageUrl={(actor, script, index: number) => {
-                const emotion = determineEmotion((actor as Actor).id, script as Skit, index);
-                if (actor.flagForBackgroundRemoval) {
-                    // TODO: If the actor is flagged for background removal, ensure we return only emotion images that has had background removed (otherwise, return neutral):
+                const emotion = determineEmotion(actor.id, script as Skit, index);
+                // If this actor is flagged for background removal and the emotion image URL has "avatars" in it, it's part of an official pack that was determined to be non-transparent; kick off removal.
+                if (actor.flagForBackgroundRemoval && actor.emotionPack[emotion].includes('avatars')) {
+                    removeBackgroundFromEmotionImage(actor, emotion, stage());
+                    return actor.emotionPack[Emotion.neutral] || '';
                 }
-                return (actor as Actor).emotionPack[emotion] || (actor as Actor).emotionPack[Emotion.neutral] || '';
+                return actor.emotionPack[emotion] || actor.emotionPack[Emotion.neutral] || '';
             }}
             onSubmitInput={handleSubmit}
             getSubmitButtonConfig={(script, index, inputText) => {

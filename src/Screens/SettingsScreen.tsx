@@ -311,7 +311,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                         marginBottom: '12px',
                                     }}
                                 >
-                                    Show Settings
+                                    Generation Settings (Mars recommended)
                                 </label>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                     {/* Text-to-Speech Toggle */}

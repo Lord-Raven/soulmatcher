@@ -268,11 +268,12 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
 
                 // Need to do background removal for neutrals if flagged.
                 console.log(`Potentially removing backgrounds.`);
-                actorsToAdd.forEach(async actor => { 
+                await Promise.all(actorsToAdd.map(async actor => {
                     if (actor.flagForBackgroundRemoval) {
                         console.log(`Remove background from ${actor.name}'s neutral image.`);
                         await removeBackgroundFromEmotionImage(actor, Emotion.neutral, this);
-                    }});
+                    }
+                }));
                 console.log('Done removing backgrounds.');
 
                 reserveActors = [...reserveActors, ...actorsToAdd];

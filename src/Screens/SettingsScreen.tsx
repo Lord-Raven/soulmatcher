@@ -443,9 +443,11 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                         <label
                                             htmlFor="language-input"
                                             style={{
-                                                color: 'rgba(255, 255, 255, 0.8)',
-                                                fontSize: '12px',
+                                                display: 'block',
+                                                color: '#FFD700',
+                                                fontSize: '14px',
                                                 fontWeight: 'bold',
+                                                marginBottom: '12px'
                                             }}
                                         >
                                             Language
@@ -531,9 +533,11 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         <label
                                             style={{
-                                                color: 'rgba(255, 255, 255, 0.8)',
-                                                fontSize: '12px',
+                                                display: 'block',
+                                                color: '#FFD700',
+                                                fontSize: '14px',
                                                 fontWeight: 'bold',
+                                                marginBottom: '12px'
                                             }}
                                         >
                                             Content Rating
@@ -556,7 +560,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 justifyContent: 'space-between',
                                                 fontSize: '11px',
                                                 color: 'rgba(255, 255, 255, 0.5)',
-                                                paddingTop: '4px',
+                                                paddingTop: '0px',
                                             }}>
                                                 <span style={{ 
                                                     color: settings.spice === 1 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',

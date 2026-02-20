@@ -18,8 +18,9 @@ interface LoadingScreenProps {
 }
 
 const LOADING_PHASES = [
-    { message: "Finding compatible contestants...", duration: 15000, progress: 50 },
-    { message: "Preparing the studio...", duration: Infinity, progress: 90 },
+    { message: "Finding compatible candidates...", duration: 12000, progress: 35 },
+    { message: "Preparing contestants...", duration: 12000, progress: 60 },
+    { message: "Setting the stage...", duration: Infinity, progress: 90 },
 ];
 
 export const LoadingScreen: FC<LoadingScreenProps> = ({ stage, setScreenType }) => {

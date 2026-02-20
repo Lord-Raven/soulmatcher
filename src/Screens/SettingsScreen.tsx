@@ -194,7 +194,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                 }}
             >
                 {/* Curtain Overlay */}
-                <Curtain position="down" />
+                <Curtain position="down" zIndex={1} />
 
                 <motion.div
                     initial={{ scale: 0.9, y: 50 }}

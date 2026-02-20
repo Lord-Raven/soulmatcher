@@ -89,7 +89,7 @@ export const CandidateSelectionUI: FC<CandidateSelectionUIProps> = ({
                     }}
                 >
                 {/* Curtain Overlay */}
-                <Curtain position="down" />
+                <Curtain position="down" zIndex={1} />
 
                 {isProcessing && (
                     <Box

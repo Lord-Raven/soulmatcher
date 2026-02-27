@@ -52,8 +52,7 @@ type ChatStateType = {
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {
 
-    readonly FETCH_AT_TIME = 6;
-    readonly MAX_PAGES = 30;
+    readonly FETCH_AT_TIME = 200;
     readonly bannedTagsDefault = [
         'FUZZ',
         'child',
@@ -74,12 +73,11 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         `&nsfw_only=false&require_images=false&require_example_dialogues=false&require_alternate_greetings=false&require_custom_prompt=false&exclude_mine=false&min_tokens=200&max_tokens=5000` +
         `&require_expressions=true&require_lore=false&mine_first=false&require_lore_embedded=false&require_lore_linked=false&my_favorites=false&inclusive_or=true&recommended_verified=false&count=false&min_tags=3`;
     readonly characterDetailQuery = 'https://inference.chub.ai/api/characters/{fullPath}?full=true';
-    private actorPageNumber = Math.max(1, Math.floor(Math.random() * this.MAX_PAGES));
     readonly CONTESTANT_COUNT = 5;
     loadPromises: Promise<void>[] = [];
 
     saveData: ChatStateType;
-    primaryUser: User
+    primaryUser: User;
     primaryCharacter: Character;
     betaMode = false;
 
@@ -220,25 +218,25 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
         // Create the asynchronous contestant loading promise
         const contestantLoadPromise = (async () => {
             let reserveActors: Actor[] = [];
+
+            // Populate reserveActors; this is loaded with data from a service, calling the characterServiceQuery URL:
+            const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
+            const inclusions = (this.saveData.includeTags || []).map(tag => encodeURIComponent(tag)).join('%2C');
+            const response = await fetch(this.characterSearchQuery
+                .replace('{{PAGE_NUMBER}}', '1')
+                .replace('{{EXCLUSIONS}}', exclusions ? exclusions : '')
+                .replace('{{SEARCH_TAGS}}', inclusions ? inclusions : ''));
+            const searchResults = await response.json();
+            console.log(searchResults);
+
+            // At this point, we have potentially a lot of results. Choose a random index to load from
+            let index = Math.floor(Math.random() * (searchResults.data?.nodes.length || 0));
             while (reserveActors.length < this.CONTESTANT_COUNT) {
-                // Populate reserveActors; this is loaded with data from a service, calling the characterServiceQuery URL:
-                const exclusions = (this.saveData.bannedTags || []).concat(this.bannedTagsDefault).map(tag => encodeURIComponent(tag)).join('%2C');
-                const inclusions = (this.saveData.includeTags || []).map(tag => encodeURIComponent(tag)).join('%2C');
-                const response = await fetch(this.characterSearchQuery
-                    .replace('{{PAGE_NUMBER}}', this.actorPageNumber.toString())
-                    .replace('{{EXCLUSIONS}}', exclusions ? exclusions : '')
-                    .replace('{{SEARCH_TAGS}}', inclusions ? inclusions : ''));
-                const searchResults = await response.json();
-                console.log(searchResults);
-                // Need to do a secondary lookup for each character in searchResults, to get the details we actually care about:
-                const basicCharacterData = searchResults.data?.nodes.map((item: any) => item.fullPath) || [];
-                if (basicCharacterData.length === 0) {
-                    console.log('No more characters found in search results; resetting to first page.');
-                    this.actorPageNumber = 1; // reset to first page if we run out of results
-                } else {
-                    this.actorPageNumber = (this.actorPageNumber % this.MAX_PAGES) + 1;
-                }
-                console.log(basicCharacterData);
+                const need = this.CONTESTANT_COUNT - reserveActors.length;
+                console.log(`Loading contestants from index ${index}, need ${need} more. Total: ${searchResults.data.nodes.length} results available.`);
+                
+                // Need to do a secondary lookup for indices between index and (index + need)
+                const basicCharacterData = searchResults.data?.nodes.filter((_: any, i: number) => i >= index && i < index + need).map((item: any) => item.fullPath) || [];
 
                 const newActors: Actor[] = await Promise.all(basicCharacterData.map(async (fullPath: string) => {
                     try {
@@ -279,7 +277,9 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                 reserveActors = [...reserveActors, ...actorsToAdd];
 
                 if (reserveActors.length < this.CONTESTANT_COUNT) {
-                    if (this.actorPageNumber == 1) {
+                    index += need;
+                    if (index >= searchResults.data.nodes.length) {
+                        index = 0; // Wrap around
                         if (!beenToStart) {
                             beenToStart = true;
                         } else {
@@ -289,7 +289,6 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
                         }
                     }
                     console.log(`Only found ${reserveActors.length} valid contestants so far; continuing search...`);
-                    await new Promise(resolve => setTimeout(resolve, 1000));
                 } else {
                     console.log(`Found ${reserveActors.length} valid contestants!`);
                     console.log(reserveActors);

@@ -229,7 +229,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             fontSize: 'clamp(10px, 1.5vw, 12px)',
                         }}
                     >
-                        {'v2026.02.20 - Improving start-up failure handling.'}
+                        {'v2026.02.27 - Fixing bugs.'}
                     </motion.div>
                 </motion.div>
             </Box>

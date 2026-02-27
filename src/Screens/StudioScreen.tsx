@@ -657,6 +657,8 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             renderActorHoverInfo={(actor) => {
                 if (!actor || actor.id === stage().getPlayerActor().id) return null;
                 const typedActor = actor as Actor;
+                const hostId = stage().getHostActor().id;
+                const authorName = typedActor.fullPath?.split('/').filter(Boolean)[0] || '';
                 return (
                     <Box
                         sx={{
@@ -672,6 +674,20 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                                 actor={typedActor}
                             />
                         </Box>
+                        {typedActor.id !== hostId && authorName && (
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: 'block',
+                                    marginBottom: 1,
+                                    color: 'rgba(255, 255, 255, 0.8)',
+                                    fontStyle: 'italic',
+                                    fontFamily: 'serif',
+                                }}
+                            >
+                                {authorName}
+                            </Typography>
+                        )}
                         <Box
                             sx={{
                                 color: '#ffffff',

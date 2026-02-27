@@ -685,7 +685,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                                     fontFamily: 'serif',
                                 }}
                             >
-                                {authorName}
+                                by {authorName}
                             </Typography>
                         )}
                         <Box

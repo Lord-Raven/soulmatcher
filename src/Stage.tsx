@@ -48,6 +48,7 @@ type ChatStateType = {
     spice?: number;  // 1-3 scale for content rating (1=flirty, 2=dirty, 3=explicit)
     gameProgress: GameProgressState;
     removeBackgrounds?: boolean;
+    skitIndex?: number;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {

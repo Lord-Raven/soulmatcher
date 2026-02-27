@@ -229,7 +229,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             fontSize: 'clamp(10px, 1.5vw, 12px)',
                         }}
                     >
-                        {'v2026.02.27 - Fixing bugs.'}
+                        {'v2026.02.27 - Improved emotion detection, cast randomization.'}
                     </motion.div>
                 </motion.div>
             </Box>

@@ -371,7 +371,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                                 finalEmotion = emotionName as Emotion;
                                 console.log(`Recognized standard emotion "${finalEmotion}" for ${matched.name}`);
                             } else {
-                                const closestEmotion = findBestNameMatch(emotionName, Object.keys(Emotion).map(e => ({ name: e })));
+                                const closestEmotion = findBestNameMatch(emotionName, Object.keys(EMOTION_MAPPING).map(e => ({ name: e })));
                                 if (closestEmotion) {
                                     console.warn(`Non-standard emotion "${emotionName}" for ${matched.name} is being mapped to closest standard emotion "${closestEmotion.name}".`);
                                     finalEmotion = EMOTION_MAPPING[closestEmotion.name];

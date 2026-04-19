@@ -49,6 +49,7 @@ type ChatStateType = {
     gameProgress: GameProgressState;
     removeBackgrounds?: boolean;
     skitIndex?: number;
+    disableImpersonation?: boolean;
 }
 
 export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateType, ConfigType> {

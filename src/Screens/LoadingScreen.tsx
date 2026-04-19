@@ -2,7 +2,6 @@ import { FC, useState, useEffect } from 'react';
 import { Box, LinearProgress, Typography } from '@mui/material';
 import { ScreenType } from './BaseScreen';
 import { Stage } from '../Stage';
-import { Curtain } from './Curtain';
 import { useTheme } from '@mui/material/styles';
 import { useTooltip } from './TooltipContext';
 import { Error } from '@mui/icons-material';

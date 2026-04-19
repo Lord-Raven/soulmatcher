@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Stage } from '../Stage';
 import { GlassPanel, Title, Button, TextInput } from './UIComponents';
 import { Curtain } from './Curtain';
-import { Close, HideImage, VoiceChat } from '@mui/icons-material';
+import {Close, Forum, HideImage, VoiceChat} from '@mui/icons-material';
 import { useTooltip } from './TooltipContext';
 
 interface SettingsScreenProps {
@@ -17,6 +17,7 @@ interface SettingsData {
     playerName: string;
     playerDescription: string;
     disableTextToSpeech: boolean;
+    disableImpersonation: boolean;
     removeExpressionBackgrounds: boolean;
     tagToggles: { [key: string]: boolean };
     language: string;
@@ -62,6 +63,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
         playerName: stage().getPlayerActor()?.name || stage().primaryUser?.name || 'Player',
         playerDescription: stage().getPlayerActor()?.description || stage().primaryUser?.chatProfile ||'An enimgmatic contestant on Soulmatcher!',
         disableTextToSpeech: !(stage().saveData.disableTextToSpeech ?? false),
+        disableImpersonation: stage().saveData.disableImpersonation ?? false,
         removeExpressionBackgrounds: stage().saveData.removeBackgrounds ?? false,
         language: stage().saveData.language || 'English',
         spice: stage().saveData.spice ?? 2,  // Default to middle of scale
@@ -102,6 +104,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
             .flat();
         
         stage().saveData.disableTextToSpeech = !settings.disableTextToSpeech;
+        stage().saveData.disableImpersonation = settings.disableImpersonation;
         stage().saveData.removeBackgrounds = settings.removeExpressionBackgrounds;
         stage().saveData.language = settings.language;
         stage().saveData.spice = settings.spice;
@@ -438,7 +441,133 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                         </span>
                                     </motion.div>
 
-                                    {/* Language Input */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {/* Text-to-Speech Toggle */}
+                                        <motion.div
+                                            whileHover={{ scale: 1.01 }}
+                                            whileTap={{ scale: 0.99 }}
+                                            onClick={() => setSettings(prev => ({ ...prev, disableTextToSpeech: !prev.disableTextToSpeech }))}
+                                            onMouseEnter={() => setTooltip('Disable Text-to-Speech to conserve credits.', VoiceChat)}
+                                            onMouseLeave={clearTooltip}
+                                            style={{
+                                                padding: '12px',
+                                                background: settings.disableTextToSpeech
+                                                    ? 'rgba(255, 20, 147, 0.15)'
+                                                    : 'rgba(36, 7, 65, 0.7)',
+                                                border: settings.disableTextToSpeech
+                                                    ? '2px solid rgba(255, 20, 147, 0.5)'
+                                                    : '2px solid rgba(255, 215, 0, 0.3)',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    borderRadius: '4px',
+                                                    background: settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
+                                                    border: '2px solid ' + (settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    flexShrink: 0,
+                                                    transition: 'all 0.2s ease',
+                                                }}
+                                            >
+                                                {settings.disableTextToSpeech && (
+                                                    <motion.span
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        style={{
+                                                            color: '#FFFFFF',
+                                                            fontSize: '14px',
+                                                            fontWeight: 'bold',
+                                                        }}
+                                                    >
+                                                        ✓
+                                                    </motion.span>
+                                                )}
+                                            </div>
+                                            <span
+                                                style={{
+                                                    color: settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
+                                                    fontSize: '13px',
+                                                    fontWeight: settings.disableTextToSpeech ? 'bold' : 'normal',
+                                                }}
+                                            >
+                                            Text-to-Speech
+                                        </span>
+                                        </motion.div>
+
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {/* Impersonation Toggle */}
+                                            <motion.div
+                                                whileHover={{ scale: 1.01 }}
+                                                whileTap={{ scale: 0.99 }}
+                                                onClick={() => setSettings(prev => ({ ...prev, disableImpersonation: !prev.disableImpersonation }))}
+                                                onMouseEnter={() => setTooltip('Reduces the number of messages generated per request; impersonation can be overwritten in-game.', Forum)}
+                                                onMouseLeave={clearTooltip}
+                                                style={{
+                                                    padding: '12px',
+                                                    background: settings.disableImpersonation
+                                                        ? 'rgba(255, 20, 147, 0.15)'
+                                                        : 'rgba(36, 7, 65, 0.7)',
+                                                    border: settings.disableImpersonation
+                                                        ? '2px solid rgba(255, 20, 147, 0.5)'
+                                                        : '2px solid rgba(255, 215, 0, 0.3)',
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s ease',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px',
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        borderRadius: '4px',
+                                                        background: settings.disableImpersonation ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
+                                                        border: '2px solid ' + (settings.disableImpersonation ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        flexShrink: 0,
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                >
+                                                    {settings.disableImpersonation && (
+                                                        <motion.span
+                                                            initial={{ scale: 0 }}
+                                                            animate={{ scale: 1 }}
+                                                            style={{
+                                                                color: '#FFFFFF',
+                                                                fontSize: '14px',
+                                                                fontWeight: 'bold',
+                                                            }}
+                                                        >
+                                                            ✓
+                                                        </motion.span>
+                                                    )}
+                                                </div>
+                                                <span
+                                                    style={{
+                                                        color: settings.disableImpersonation ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
+                                                        fontSize: '13px',
+                                                        fontWeight: settings.disableImpersonation ? 'bold' : 'normal',
+                                                    }}
+                                                >
+                                            Disable Impersonation
+                                        </span>
+                                    </motion.div>
+
+                                        {/* Language Input */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                         <label
                                             htmlFor="language-input"

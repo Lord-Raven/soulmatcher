@@ -96,19 +96,19 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
             .filter(key => !settings.tagToggles[key])
             .map(key => banTagMap[key] ? banTagMap[key] : [key])
             .flat();
-        
+
         // Save included tags (checked = included for includeTagMap items)
         stage().saveData.includeTags = Object.keys(includeTagMap)
             .filter(key => settings.tagToggles[key])
             .map(key => includeTagMap[key] ? includeTagMap[key] : [key])
             .flat();
-        
+
         stage().saveData.disableTextToSpeech = !settings.disableTextToSpeech;
         stage().saveData.disableImpersonation = settings.disableImpersonation;
         stage().saveData.removeBackgrounds = settings.removeExpressionBackgrounds;
         stage().saveData.language = settings.language;
         stage().saveData.spice = settings.spice;
-        
+
         if (isNewGame) {
             console.log('Starting new game with settings');
             stage().startNewGame({
@@ -145,10 +145,10 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
 
     const handleLanguageChange = (value: string) => {
         setSettings(prev => ({ ...prev, language: value }));
-        
+
         // Filter and update suggestions
         if (value.trim()) {
-            const filtered = commonLanguages.filter(lang => 
+            const filtered = commonLanguages.filter(lang =>
                 lang.toLowerCase().includes(value.toLowerCase())
             ).slice(0, 8); // Limit to 8 suggestions
             setLanguageSuggestions(filtered);
@@ -190,7 +190,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                     // Don't close if user is selecting text
                     const selection = window.getSelection();
                     const hasSelection = selection && selection.toString().length > 0;
-                    
+
                     if (e.target === e.currentTarget && !isNewGame && !hasSelection) {
                         onCancel();
                     }
@@ -207,7 +207,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                     onClick={(e) => e.stopPropagation()}
                     style={{ position: 'relative', zIndex: 10 }}
                 >
-                    <GlassPanel 
+                    <GlassPanel
                         variant="bright"
                         style={{
                             width: '80vw',
@@ -251,7 +251,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             {/* Player Name */}
                             <div>
-                                <label 
+                                <label
                                     htmlFor="player-name"
                                     style={{
                                         display: 'block',
@@ -275,7 +275,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
 
                             {/* Player Description */}
                             <div>
-                                <label 
+                                <label
                                     htmlFor="player-description"
                                     style={{
                                         display: 'block',
@@ -305,7 +305,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
 
                             {/* Generation Settings */}
                             <div>
-                                <label 
+                                <label
                                     style={{
                                         display: 'block',
                                         color: '#FFD700',
@@ -441,133 +441,70 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                         </span>
                                     </motion.div>
 
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                        {/* Text-to-Speech Toggle */}
-                                        <motion.div
-                                            whileHover={{ scale: 1.01 }}
-                                            whileTap={{ scale: 0.99 }}
-                                            onClick={() => setSettings(prev => ({ ...prev, disableTextToSpeech: !prev.disableTextToSpeech }))}
-                                            onMouseEnter={() => setTooltip('Disable Text-to-Speech to conserve credits.', VoiceChat)}
-                                            onMouseLeave={clearTooltip}
+                                    {/* Impersonation Toggle */}
+                                    <motion.div
+                                        whileHover={{ scale: 1.01 }}
+                                        whileTap={{ scale: 0.99 }}
+                                        onClick={() => setSettings(prev => ({ ...prev, disableImpersonation: !prev.disableImpersonation }))}
+                                        onMouseEnter={() => setTooltip('Prevent the LLM from speaking for the player, limiting per-response script length.', Forum)}
+                                        onMouseLeave={clearTooltip}
+                                        style={{
+                                            padding: '12px',
+                                            background: settings.disableImpersonation
+                                                ? 'rgba(255, 20, 147, 0.15)'
+                                                : 'rgba(36, 7, 65, 0.7)',
+                                            border: settings.disableImpersonation
+                                                ? '2px solid rgba(255, 20, 147, 0.5)'
+                                                : '2px solid rgba(255, 215, 0, 0.3)',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                        }}
+                                    >
+                                        <div
                                             style={{
-                                                padding: '12px',
-                                                background: settings.disableTextToSpeech
-                                                    ? 'rgba(255, 20, 147, 0.15)'
-                                                    : 'rgba(36, 7, 65, 0.7)',
-                                                border: settings.disableTextToSpeech
-                                                    ? '2px solid rgba(255, 20, 147, 0.5)'
-                                                    : '2px solid rgba(255, 215, 0, 0.3)',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s ease',
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '4px',
+                                                background: settings.disableImpersonation ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
+                                                border: '2px solid ' + (settings.disableImpersonation ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: '8px',
+                                                justifyContent: 'center',
+                                                flexShrink: 0,
+                                                transition: 'all 0.2s ease',
                                             }}
                                         >
-                                            <div
-                                                style={{
-                                                    width: '20px',
-                                                    height: '20px',
-                                                    borderRadius: '4px',
-                                                    background: settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
-                                                    border: '2px solid ' + (settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    flexShrink: 0,
-                                                    transition: 'all 0.2s ease',
-                                                }}
-                                            >
-                                                {settings.disableTextToSpeech && (
-                                                    <motion.span
-                                                        initial={{ scale: 0 }}
-                                                        animate={{ scale: 1 }}
-                                                        style={{
-                                                            color: '#FFFFFF',
-                                                            fontSize: '14px',
-                                                            fontWeight: 'bold',
-                                                        }}
-                                                    >
-                                                        ✓
-                                                    </motion.span>
-                                                )}
-                                            </div>
-                                            <span
-                                                style={{
-                                                    color: settings.disableTextToSpeech ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
-                                                    fontSize: '13px',
-                                                    fontWeight: settings.disableTextToSpeech ? 'bold' : 'normal',
-                                                }}
-                                            >
-                                            Text-to-Speech
-                                        </span>
-                                        </motion.div>
-
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                            {/* Impersonation Toggle */}
-                                            <motion.div
-                                                whileHover={{ scale: 1.01 }}
-                                                whileTap={{ scale: 0.99 }}
-                                                onClick={() => setSettings(prev => ({ ...prev, disableImpersonation: !prev.disableImpersonation }))}
-                                                onMouseEnter={() => setTooltip('Reduces the number of messages generated per request; impersonation can be overwritten in-game.', Forum)}
-                                                onMouseLeave={clearTooltip}
-                                                style={{
-                                                    padding: '12px',
-                                                    background: settings.disableImpersonation
-                                                        ? 'rgba(255, 20, 147, 0.15)'
-                                                        : 'rgba(36, 7, 65, 0.7)',
-                                                    border: settings.disableImpersonation
-                                                        ? '2px solid rgba(255, 20, 147, 0.5)'
-                                                        : '2px solid rgba(255, 215, 0, 0.3)',
-                                                    borderRadius: '8px',
-                                                    cursor: 'pointer',
-                                                    transition: 'all 0.2s ease',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px',
-                                                }}
-                                            >
-                                                <div
+                                            {settings.disableImpersonation && (
+                                                <motion.span
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
                                                     style={{
-                                                        width: '20px',
-                                                        height: '20px',
-                                                        borderRadius: '4px',
-                                                        background: settings.disableImpersonation ? '#FF1493' : 'rgba(255, 255, 255, 0.1)',
-                                                        border: '2px solid ' + (settings.disableImpersonation ? '#FF1493' : 'rgba(255, 215, 0, 0.3)'),
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        flexShrink: 0,
-                                                        transition: 'all 0.2s ease',
+                                                        color: '#FFFFFF',
+                                                        fontSize: '14px',
+                                                        fontWeight: 'bold',
                                                     }}
                                                 >
-                                                    {settings.disableImpersonation && (
-                                                        <motion.span
-                                                            initial={{ scale: 0 }}
-                                                            animate={{ scale: 1 }}
-                                                            style={{
-                                                                color: '#FFFFFF',
-                                                                fontSize: '14px',
-                                                                fontWeight: 'bold',
-                                                            }}
-                                                        >
-                                                            ✓
-                                                        </motion.span>
-                                                    )}
-                                                </div>
-                                                <span
-                                                    style={{
-                                                        color: settings.disableImpersonation ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
-                                                        fontSize: '13px',
-                                                        fontWeight: settings.disableImpersonation ? 'bold' : 'normal',
-                                                    }}
-                                                >
+                                                    ✓
+                                                </motion.span>
+                                            )}
+                                        </div>
+                                        <span
+                                            style={{
+                                                color: settings.disableImpersonation ? '#FF1493' : 'rgba(255, 255, 255, 0.7)',
+                                                fontSize: '13px',
+                                                fontWeight: settings.disableImpersonation ? 'bold' : 'normal',
+                                            }}
+                                        >
                                             Disable Impersonation
                                         </span>
                                     </motion.div>
 
-                                        {/* Language Input */}
+
+                                    {/* Language Input */}
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                         <label
                                             htmlFor="language-input"
@@ -636,8 +573,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                                     color: 'rgba(255, 255, 255, 0.8)',
                                                                     fontSize: '13px',
                                                                     transition: 'all 0.15s ease',
-                                                                    borderBottom: index < languageSuggestions.length - 1 
-                                                                        ? '1px solid rgba(255, 20, 147, 0.1)' 
+                                                                    borderBottom: index < languageSuggestions.length - 1
+                                                                        ? '1px solid rgba(255, 20, 147, 0.1)'
                                                                         : 'none',
                                                                 }}
                                                                 onMouseEnter={(e) => {
@@ -691,15 +628,15 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                                 color: 'rgba(255, 255, 255, 0.5)',
                                                 paddingTop: '0px',
                                             }}>
-                                                <span style={{ 
+                                                <span style={{
                                                     color: settings.spice === 1 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
                                                     fontWeight: settings.spice === 1 ? 'bold' : 'normal',
                                                 }}>Flirty</span>
-                                                <span style={{ 
+                                                <span style={{
                                                     color: settings.spice === 2 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
                                                     fontWeight: settings.spice === 2 ? 'bold' : 'normal',
                                                 }}>Dirty</span>
-                                                <span style={{ 
+                                                <span style={{
                                                     color: settings.spice === 3 ? '#FF1493' : 'rgba(255, 255, 255, 0.5)',
                                                     fontWeight: settings.spice === 3 ? 'bold' : 'normal',
                                                 }}>Explicit</span>
@@ -711,7 +648,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
 
                             {/* Toggle Grid */}
                             <div>
-                                <label 
+                                <label
                                     style={{
                                         display: 'block',
                                         color: '#FFD700',
@@ -722,7 +659,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                 >
                                     Content Preferences
                                 </label>
-                                <div 
+                                <div
                                     style={{
                                         display: 'grid',
                                         gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
@@ -737,8 +674,8 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                                             onClick={() => handleToggle(key)}
                                             style={{
                                                 padding: '12px',
-                                                background: value 
-                                                    ? 'rgba(255, 20, 147, 0.15)' 
+                                                background: value
+                                                    ? 'rgba(255, 20, 147, 0.15)'
                                                     : 'rgba(36, 7, 65, 0.7)',
                                                 border: value
                                                     ? '2px solid rgba(255, 20, 147, 0.5)'
@@ -794,7 +731,7 @@ export const SettingsScreen: FC<SettingsScreenProps> = ({ stage, onCancel, onCon
                             </div>
 
                             {/* Action Buttons */}
-                            <div 
+                            <div
                                 style={{
                                     display: 'flex',
                                     gap: '12px',

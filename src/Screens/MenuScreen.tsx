@@ -229,7 +229,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             fontSize: 'clamp(10px, 1.5vw, 12px)',
                         }}
                     >
-                        {'v2026.02.27 - Improved emotion detection, cast randomization.'}
+                        {'v2026.04.19 - Disable impersonation toggle.'}
                     </motion.div>
                 </motion.div>
             </Box>

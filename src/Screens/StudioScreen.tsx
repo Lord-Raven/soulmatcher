@@ -2,7 +2,7 @@ import { Stage, GamePhase } from "../Stage";
 import { Skit, SkitType, buildScriptLog, generateSkitScript } from "../Skit";
 import { FC, useEffect, useRef, useState } from "react";
 import { ScreenType } from "./BaseScreen";
-import { Actor, findBestNameMatch, removeBackgroundFromEmotionImage } from "../Actor";
+import { Actor, findBestNameMatch } from "../Actor";
 import { NovelVisualizer } from "@lord-raven/novel-visualizer";
 import { Emotion } from "../Emotion";
 import { Box, CircularProgress, Typography } from "@mui/material";
@@ -616,7 +616,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             </Box>
             
             {(skit && skit.script) ? <NovelVisualizer
-            script={skit}
+            skit={skit}
             renderNameplate={(actor: any) => {
                 if (!actor || !actor.name) return null;
                 const typedActor = actor as Actor;
@@ -652,9 +652,9 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 }
             }}
             enableAudio={!stage().saveData.disableTextToSpeech}
-            enableGhostSpeakers={true}
+            enablePopInSpeakers={true}
             enableTalkingAnimation={true}
-            renderActorHoverInfo={(actor) => {
+            responsiveOverlay={(skit, actor) => {
                 if (!actor || actor.id === stage().getPlayerActor().id) return null;
                 const typedActor = actor as Actor;
                 const hostId = stage().getHostActor().id;

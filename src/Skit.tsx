@@ -207,6 +207,10 @@ export class ScriptEntry {
     }
 }
 
+export function buildPromptSegment(title: string, content: string) {
+    return content.trim() ? `${title}: [\n${content.trim()}\n]\n\n` : '';
+}
+
 export function buildScriptLog(stage: Stage, skit: Skit, additionalEntries: ScriptEntry[] = []): string {
         return ((skit.script && skit.script.length > 0) || additionalEntries.length > 0) ?
             [...skit.script, ...additionalEntries].map(e => {
@@ -217,7 +221,7 @@ export function buildScriptLog(stage: Stage, skit: Skit, additionalEntries: Scri
                 const bestMatch = findBestNameMatch(speaker, candidates);
                 const matchingKey = bestMatch?.name;
                 const emotionText = matchingKey ? ` [${matchingKey} EXPRESSES ${e.actorEmotions?.[matchingKey]}]` : '';
-                return `${speaker}:${e.message}${emotionText}`;
+                return `[${speaker} TURN] ${e.message}${emotionText}`;
             }).join('\n')
             : '(None so far)';
 }
@@ -270,12 +274,12 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
         try {
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
                 `Example Script Format:\n` +
-                    `CHARACTER NAME: Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
-                    `CHARACTER NAME: [CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
-                    `ANOTHER CHARACTER NAME: [ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
+                    `[CHARACTER NAME TURN] Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
+                    `[CHARACTER NAME TURN][CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
+                    `[ANOTHER CHARACTER NAME TURN][ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
                         `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only the named character can speak in each entry."\n` +
-                    `CHARACTER NAME: They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
-                    `NARRATOR: [CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
+                    `[CHARACTER NAME TURN] They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
+                    `[NARRATOR TURN][CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     (stage.saveData.disableImpersonation ? '' : `${stage.getPlayerActor().name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n`) +
                     `\n\n` +
                 `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
@@ -292,6 +296,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     `Entries from the player, ${stage.getPlayerActor().name}, are written in first-person, while other entries consistently refer to ${stage.getPlayerActor().name} in second-person; all other characters are referred to in third-person, even in their own entries.`) +
                 `\n\nTag Instruction:\n` +
                 `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
+                `\n\n  Character turn tags ("[CHARACTER NAME TURN]") should be used to indicate when a character is taking an action or speaking. Each entry must have a character turn tag to indicate who is performing the actions and dialogue in that entry. Consecutive turns can be used to reduce individual entry length. [NARRATOR TURN] can be used to indicate a general entry with no speaker.` +
                 `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
                 `\n\n  Pause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
                 `\n\nThis scene is a brief visual novel skit within a game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
@@ -452,7 +457,6 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 for (const entry of scriptEntries) {
                     if (!entry.message || entry.message.trim().length === 0) {
                         scriptEntries.splice(scriptEntries.indexOf(entry), 1);
-                        continue;
                     }
                 }
 

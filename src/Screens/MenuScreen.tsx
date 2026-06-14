@@ -229,7 +229,7 @@ export const MenuScreen: FC<MenuScreenProps> = ({ stage, setScreenType }) => {
                             fontSize: 'clamp(10px, 1.5vw, 12px)',
                         }}
                     >
-                        {'v2026.04.19 - Disable impersonation toggle.'}
+                        {'v2026.06.13 - Attempting to compensate for payload structure changes through prompting adjustments. Behavior may be a bit borked.'}
                     </motion.div>
                 </motion.div>
             </Box>

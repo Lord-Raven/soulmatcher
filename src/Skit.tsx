@@ -217,7 +217,7 @@ export function buildScriptLog(stage: Stage, skit: Skit, additionalEntries: Scri
             [...skit.script, ...additionalEntries].map(e => {
                 // Find the best matching emotion key for this speaker
                 const emotionKeys = Object.keys(e.actorEmotions || {});
-                const speaker = stage.saveData.actors[e.speakerId]?.name || e.speakerId;
+                const speaker = stage.saveData.actors[e.speakerId]?.name || e.speakerId || 'NARRATOR';
                 const candidates = emotionKeys.map(key => ({ name: key }));
                 const bestMatch = findBestNameMatch(speaker, candidates);
                 const matchingKey = bestMatch?.name;
@@ -246,8 +246,8 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
         buildPromptSegment(`Premise`, `This is an interactive visual novel depicting a modern dating gameshow hosted by the actual Roman god of love, Cupid.` +
         `The game positions the player character, ${player.name}, as the primary contestant interviewing a number of candidate love interests. After a couple rounds of interviews, ${player.name}, the audience, and Cupid himself will ` +
         `vote on the candidate they think should become ${player.name}'s soulmate, and then Cupid will shoot them both and seal the deal.`) +
-        buildPromptSegment(player.name, `Description: ${player.description}`) + // Player has only a description.
-        buildPromptSegment(`Cupid`, `Description: ${host.description}\n  Profile: ${host.profile}\n  Motive: ${host.motive}`) +
+        buildPromptSegment(player.name, `  Description: ${player.description}`) + // Player has only a description.
+        buildPromptSegment(`Cupid`, `  Description: ${host.description}\n  Profile: ${host.profile}\n  Motive: ${host.motive}`) +
         
         ((historyLength > 0 && pastSkits.length) ? 
                 // Include last few skit scripts for context and style reference
@@ -259,9 +259,9 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
 
         // List characters who are here, along with full stat details:
         buildPromptSegment(`Participating Candidates`, `${presentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}`) +
+            return `  ${actor.name}\nDescription: ${actor.description}\n  Profile: ${actor.profile}\n  Motive: ${actor.motive}`}).join('\n')}`) +
         buildPromptSegment(`Other Candidates`, `${absentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}`) +
+            return `  ${actor.name}\nDescription: ${actor.description}\n  Profile: ${actor.profile}\n  Motive: ${actor.motive}`}).join('\n')}`) +
         `\n\n${instruction}`;
     return fullPrompt;
 }
@@ -546,15 +546,16 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     
                     const upcomingRound = getUpcomingRoundDescription(stage);
                     
-                    const completionPrompt = `{{messages}}\nYou are analyzing a scene from a dating gameshow visual novel to determine if this round of the game has reached a natural conclusion.\n\n` +
-                        `Scene Context:\n${getSkitTypePrompt(skit.skitType, stage, skit)}\n\n` +
-                        `${upcomingRound ? `Upcoming Round:\n${upcomingRound}\n\n` : ''}` +
-                        `Script So Far:\n${buildScriptLog(stage, skit, scriptEntries)}\n\n` +
-                        `Prompt: Has this scene fulfilled its narrative purpose (outlined by Scene Context) and reached a natural conclusion or transition point where this gameshow is ready to move to the next phase? Consider whether the current script naturally leads into the upcoming round.\n\n` +
+                    const completionPrompt = `{{messages}}` +
+                        buildPromptSegment(`Instruction`, `The system is analyzing a scene from a dating gameshow visual novel to determine if this round of the game has reached a natural conclusion.`) +
+                        buildPromptSegment(`Scene Context`, getSkitTypePrompt(skit.skitType, stage, skit)) +
+                        `${upcomingRound ? buildPromptSegment(`Upcoming Round`, upcomingRound) : ''}` +
+                        buildPromptSegment(`Script for Analysis`, buildScriptLog(stage, skit, scriptEntries)) +
+                        buildPromptSegment(`Prompt`, `Has this scene fulfilled its narrative purpose (outlined by Scene Context) and reached a natural conclusion or transition point where this gameshow is ready to move to the next phase? Consider whether the current script naturally leads into the upcoming round.\n\n` +
                         `Respond with exactly one of these terms:\n` +
                         `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose (outlined by Scene Context), naturally leads into the upcoming round, or hits a good transition point\n` +
                         `- SCENE_CONTINUES if the scene hasn't fulfilled its purpose (outlined by Scene Context) or feels incomplete\n\n` +
-                        `Begin the response with the appropriate term, followed by "###" and a brief explanation of your reasoning.`;
+                        `At the system prompt, begin with the appropriate term, followed by "###" and a brief explanation of your reasoning.`);
                     
                     try {
                         const response = await stage.generator.textGen({

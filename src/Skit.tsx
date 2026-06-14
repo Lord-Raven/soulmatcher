@@ -277,12 +277,12 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
         try {
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
                 buildPromptSegment(`Example Script Format`,
-                    `[CHARACTER NAME TURN] Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
-                    `[CHARACTER NAME TURN][CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
-                    `[ANOTHER CHARACTER NAME TURN][ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
+                    `[CHARACTER NAME turn] Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
+                    `[CHARACTER NAME turn][CHARACTER NAME expresses PRIDE] "A character can have two turn entries in a row, if they have more to say or do or it makes sense to break up a lot of activity; it still needs a turn tag!"\n` +
+                    `[ANOTHER CHARACTER NAME turn][ANOTHER CHARACTER NAME expresses JOY][CHARACTER NAME expresses SURPRISE] ` +
                         `"Other character expressions can update in each other's entries—say, if they're reacting to something the speaker says—, but only the named character can speak in each entry."\n` +
-                    `[CHARACTER NAME TURN] They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
-                    `[NARRATOR TURN][CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
+                    `[CHARACTER NAME turn] They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
+                    `[NARRATOR turn][CHARACTER NAME expresses RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     (stage.saveData.disableImpersonation ? '' : `${stage.getPlayerActor().name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n`) +
                     ``) +
                 buildPromptSegment(`Current Scene Script Log to Continue`, buildScriptLog(stage, skit)) +
@@ -290,9 +290,9 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 (upcomingRound ? buildPromptSegment(`Upcoming Round`, upcomingRound) : '') +
                 buildPromptSegment(`Tag Instruction`,
                 `Embedded within this script, the System may employ special tags to trigger various game mechanics. ` +
-                `\n\nCharacter turn tags ("[CHARACTER NAME TURN]") should be used to indicate when a character is taking an action or speaking. Each entry must have a character turn tag to indicate who is performing the actions and dialogue in that entry. Consecutive turns can be used to reduce individual entry length. [NARRATOR TURN] can be used to indicate a general entry with no speaker.` +
-                `\n\nEmotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
-                `\n\nPause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
+                `\n\nCharacter turn tags, [<characterName> turn], should be used to indicate when a character is taking an action or speaking. Each entry must have a character turn tag to indicate who is performing the actions and dialogue in that entry. Consecutive turns can be used to reduce individual entry length. [NARRATOR TURN] can be used to indicate a general entry with no speaker.` +
+                `\n\nEmotion tags, [<characterName> expresses <emotion>], should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
+                `\n\nA pause tag, [pause] can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
                 `\n\nThis scene is a brief visual novel skit within a game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules.`) +
                 buildPromptSegment(`Primary Instruction`, `The System will ` +
@@ -322,7 +322,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
             const response = await stage.generator.textGen({
                 prompt: fullPrompt,
                 min_tokens: 10,
-                max_tokens: 500,
+                max_tokens: 700,
                 include_history: true,
                 stop: ['[PAUSE]']
             });

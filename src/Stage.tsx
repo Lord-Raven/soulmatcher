@@ -327,6 +327,7 @@ export class Stage extends StageBase<InitStateType, ChatStateType, MessageStateT
             // Generate the initial script
             const scriptResult = await generateSkitScript(introSkit, this);
             introSkit.script = scriptResult.entries;
+            introSkit.currentIndex = 0;
             
             // Add to skits map and save
             this.addSkit(introSkit);

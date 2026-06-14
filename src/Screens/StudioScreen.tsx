@@ -662,6 +662,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
                 return (
                     <Box
                         sx={{
+                            float: 'right',
                             padding: 2,
                             backgroundColor: 'rgba(0, 0, 0, 0.85)',
                             borderRadius: 2,

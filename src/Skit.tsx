@@ -182,6 +182,7 @@ export class Skit {
     presentActors: string[] = []; // List of Actor IDs present in this skit
     locationDescription: string = '';
     locationImageUrl: string = '';
+    currentIndex: number = 0; // To track progress through the script
     
     constructor(props: any) {
         Object.assign(this, props);

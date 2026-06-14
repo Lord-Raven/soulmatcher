@@ -418,6 +418,7 @@ export const StudioScreen: FC<StudioScreenProps> = ({ stage, setScreenType, isVe
             const line = skit.script[i];
             if (line && line.actorEmotions && line.actorEmotions[actorId]) {
                 emotion = line.actorEmotions[actorId];
+                console.log(`Determined emotion for actor ${actorId} at script index ${index}: ${emotion}`);
                 break;
             }
         }

@@ -287,23 +287,25 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 buildPromptSegment(`Current Scene Script Log to Continue`, buildScriptLog(stage, skit)) +
                 buildPromptSegment(`Scene Prompt for Current Round`, getSkitTypePrompt(skit.skitType, stage, skit)) +
                 (upcomingRound ? buildPromptSegment(`Upcoming Round`, upcomingRound) : '') +
-                buildPromptSegment(`Primary Instruction`,
-                `${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
-                `based upon the Premise and the specified Scene Prompt. Work toward fulfilling the goal of the Scene Prompt; if this scene's script already feels complete, consider segueing toward the Upcoming Round (but don't start it yet—it is handled in a future skit).` +
-                `\n\nFollow the structure of the strict Example Script formatting above: ` +
-                `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
-                `Although a loose script format is employed, the actual content should be professionally edited narrative prose.` +
-                (stage.saveData.disableImpersonation ?
-                    `New entries refer to the player, ${stage.getPlayerActor().name}, in second-person; all other characters are referred to in third-person, even in their own entries.` :
-                    `Entries from the player, ${stage.getPlayerActor().name}, are written in first-person, while other entries consistently refer to ${stage.getPlayerActor().name} in second-person; all other characters are referred to in third-person, even in their own entries.`) +
-                ``) +
                 buildPromptSegment(`Tag Instruction`,
-                `Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
+                `Embedded within this script, the System may employ special tags to trigger various game mechanics. ` +
                 `\n\nCharacter turn tags ("[CHARACTER NAME TURN]") should be used to indicate when a character is taking an action or speaking. Each entry must have a character turn tag to indicate who is performing the actions and dialogue in that entry. Consecutive turns can be used to reduce individual entry length. [NARRATOR TURN] can be used to indicate a general entry with no speaker.` +
                 `\n\nEmotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
                 `\n\nPause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
                 `\n\nThis scene is a brief visual novel skit within a game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
                 `instead developing content within the existing rules.`) +
+                buildPromptSegment(`Primary Instruction`, `The System will ` +
+                    `${skit.script.length == 0 ? 'produce the initial moments of a scene' : 'extend or conclude the current scene script'} with three to five entries, ` +
+                    `based upon the Premise and the specified Scene Prompt. These entries should authentically work toward fulfilling the goal of the Scene Prompt; ` +
+                    `if this scene's script already feels complete, consider segueing toward the Upcoming Round (but don't actually start that round yet—it is handled in a future skit).` +
+                    `\n\nFollow the structure of the strict Example Script formatting above: ` +
+                    `actions are depicted in prose and character dialogue in quotation marks. ` +
+                    `Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
+                    `The content delivered after the System prompt should be professionally edited narration that utilizes the Tag Instruction.` +
+                    (stage.saveData.disableImpersonation ?
+                        `New entries refer to the player, ${stage.getPlayerActor().name}, in second-person; all other characters are referred to in third-person, even in their own entries.` :
+                        `Entries from the player, ${stage.getPlayerActor().name}, are written in first-person, while other entries consistently refer to ${stage.getPlayerActor().name} in second-person; all other characters are referred to in third-person, even in their own entries.`) +
+                    ``) +
                 buildPromptSegment(`Spice Level`, (() => {
                     const spiceLevel = stage.saveData.spice ?? 2;
                     const spiceInstructions = {
@@ -313,7 +315,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     };
                     return spiceInstructions[spiceLevel as keyof typeof spiceInstructions] || spiceInstructions[2];
                 })()) +
-                ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? buildPromptSegment('Language', `Note: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Special emotion tags continue to use English (these are invisible to the user).`) : '')
+                ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? buildPromptSegment('Language', `Note: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Tags continue to use English (these are invisible to the user).`) : '')
             );
 
             const response = await stage.generator.textGen({
@@ -459,13 +461,16 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 // Convert parsed entries into ScriptEntry objects.
                 const scriptEntries: ScriptEntry[] = combinedEntries.map((parsedEntry, index) => {
                     let speaker = parsedEntry.speaker || 'NARRATOR';
-                    let speakerId = findBestNameMatch(speaker, Object.values(stage.saveData.actors))?.id || '';
+                    const matchedActor = findBestNameMatch(speaker, Object.values(stage.saveData.actors));
+                    let speakerId = matchedActor?.id || '';
+                    speaker = matchedActor ? matchedActor.name : speaker;
                     let message = parsedEntry.message || '';
 
                     const entry: ScriptEntry = { speakerId, speaker, message, speechUrl: '', actorEmotions: {} };
                     const tagData = combinedEmotionTags[index];
 
                     if (tagData.emotions && Object.keys(tagData.emotions).length > 0) {
+                        console.log(`Entry for speaker "${speaker}" includes emotion tags:`, tagData.emotions);
                         entry.actorEmotions = tagData.emotions;
                     }
                     return entry;
@@ -481,13 +486,6 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                             nextEntry.endScene = (nextEntry.endScene || entry.endScene);
                         }
                         scriptEntries.splice(scriptEntries.indexOf(entry), 1);
-                        continue;
-                    }
-                    // Adjust speaker name to match actor name if possible
-                    const matched = findBestNameMatch(entry.speaker, [...Object.values(stage.saveData.actors), {name: stage.getPlayerActor().name, id: 'player'}]); // Include player as a possible match
-                    if (matched) {
-                        entry.speakerId = matched.id;
-                        entry.speaker = matched.name;
                     }
                 }
 
@@ -555,7 +553,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                         `Respond with exactly one of these terms:\n` +
                         `- SCENE_COMPLETE if the scene has reached a satisfying conclusion, resolved its main purpose (outlined by Scene Context), naturally leads into the upcoming round, or hits a good transition point\n` +
                         `- SCENE_CONTINUES if the scene hasn't fulfilled its purpose (outlined by Scene Context) or feels incomplete\n\n` +
-                        `At the system prompt, begin with the appropriate term, followed by "###" and a brief explanation of your reasoning.`);
+                        `At the System prompt, begin with the appropriate term, followed by "###" and a brief explanation of the reasoning.`);
                     
                     try {
                         const response = await stage.generator.textGen({

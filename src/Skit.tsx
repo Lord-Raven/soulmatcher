@@ -405,7 +405,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                             }
                             
                             if (!finalEmotion) continue;
-                            newEmotionTags[matched.name] = finalEmotion;
+                            newEmotionTags[matched.id] = finalEmotion;
                         }
                     }
 

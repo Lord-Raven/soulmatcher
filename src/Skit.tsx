@@ -197,6 +197,7 @@ export class Skit {
 
 export class ScriptEntry {
     speakerId: string = ''; // Actor ID of speaker
+    speaker: string = ''; // Name of the speaker
     message: string = ''; // Message content for this script entry
     speechUrl: string = ''; // Optional URL for text-to-speech audio
     actorEmotions: {[key: string]: Emotion} = {}; // Map of emotion changes by actor ID
@@ -241,25 +242,26 @@ export function generateSkitPrompt(skit: Skit, stage: Stage, historyLength: numb
     // Get the last N skits for history
     pastSkits = pastSkits.slice(Math.max(0, pastSkits.length - historyLength));
 
-    let fullPrompt = `{{messages}}\nPremise:\nThis is an interactive visual novel depicting a modern dating gameshow hosted by the actual Roman god of love, Cupid.` +
+    let fullPrompt = `{{messages}}\n` +
+        buildPromptSegment(`Premise`, `This is an interactive visual novel depicting a modern dating gameshow hosted by the actual Roman god of love, Cupid.` +
         `The game positions the player character, ${player.name}, as the primary contestant interviewing a number of candidate love interests. After a couple rounds of interviews, ${player.name}, the audience, and Cupid himself will ` +
-        `vote on the candidate they think should become ${player.name}'s soulmate, and then Cupid will shoot them both and seal the deal.` +
-        `\n\n${player.name}\n  Description: ${player.description}` + // Player has only a description.
-        `\n\nCupid\n  Description: ${host.description}\n  Profile: ${host.profile}\n  Motive: ${host.motive}` +
+        `vote on the candidate they think should become ${player.name}'s soulmate, and then Cupid will shoot them both and seal the deal.`) +
+        buildPromptSegment(player.name, `Description: ${player.description}`) + // Player has only a description.
+        buildPromptSegment(`Cupid`, `Description: ${host.description}\n  Profile: ${host.profile}\n  Motive: ${host.motive}`) +
         
         ((historyLength > 0 && pastSkits.length) ? 
                 // Include last few skit scripts for context and style reference
-                '\n\nRecent events:' + pastSkits.map((v, index) =>  {
+                buildPromptSegment('Recent events', pastSkits.map((v, index) =>  {
                 if (v && v.script && v.script.length > 0) {
                     return `\n\n  Script of previous round (${v.skitType}):\n${buildScriptLog(stage, v)}`;
                 }
-            }).join('') : '') +
+            }).join('')) : '') +
 
         // List characters who are here, along with full stat details:
-        `\n\nParticipating Candidates:\n${presentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}` +
-        `\n\nOther Candidates:\n${absentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
-            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}` +
+        buildPromptSegment(`Participating Candidates`, `${presentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}`) +
+        buildPromptSegment(`Other Candidates`, `${absentActors.filter(actor => actor != stage.getPlayerActor() && actor != stage.getHostActor()).map(actor => {
+            return `  ${actor.name}\n    Description: ${actor.description}\n    Profile: ${actor.profile}\n    Motive: ${actor.motive}`}).join('\n')}`) +
         `\n\n${instruction}`;
     return fullPrompt;
 }
@@ -273,7 +275,7 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
     while (retries > 0) {
         try {
             const fullPrompt = generateSkitPrompt(skit, stage, 5 + retries * 5, // Start with lots of history, reducing each iteration.
-                `Example Script Format:\n` +
+                buildPromptSegment(`Example Script Format`,
                     `[CHARACTER NAME TURN] Character Name does some actions in prose; for example, they may be waving to you, the player. They say, "My dialogue is in quotation marks."\n` +
                     `[CHARACTER NAME TURN][CHARACTER NAME EXPRESSES PRIDE] "A character can have two entries in a row, if they have more to say or do or it makes sense to break up a lot of activity."\n` +
                     `[ANOTHER CHARACTER NAME TURN][ANOTHER CHARACTER NAME EXPRESSES JOY][CHARACTER NAME EXPRESSES SURPRISE] ` +
@@ -281,27 +283,28 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                     `[CHARACTER NAME TURN] They nod in agreement, "If there's any dialogue at all, the entry must be attributed to the character speaking."\n` +
                     `[NARRATOR TURN][CHARACTER NAME EXPRESSES RELIEF] Descriptive content or other scene events occurring around you, the player, can be attributed to NARRATOR. Dialogue cannot be included in NARRATOR entries.\n` +
                     (stage.saveData.disableImpersonation ? '' : `${stage.getPlayerActor().name.toUpperCase()}: "Hey, Character Name," I greet them warmly. I'm the player, and my entries use first-person narrative voice, while all other skit entries use second-person to refer to me.\n`) +
-                    `\n\n` +
-                `Current Scene Script Log to Continue:\n${buildScriptLog(stage, skit)}` +
-                `\n\nScene Prompt for Current Round:\n  ${getSkitTypePrompt(skit.skitType, stage, skit)}` +
-                `${upcomingRound ? `\n\nUpcoming Round:\n${upcomingRound}` : ''}` +
-                `\n\nPrimary Instruction:\n` +
-                `  ${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
+                    ``) +
+                buildPromptSegment(`Current Scene Script Log to Continue`, buildScriptLog(stage, skit)) +
+                buildPromptSegment(`Scene Prompt for Current Round`, getSkitTypePrompt(skit.skitType, stage, skit)) +
+                (upcomingRound ? buildPromptSegment(`Upcoming Round`, upcomingRound) : '') +
+                buildPromptSegment(`Primary Instruction`,
+                `${skit.script.length == 0 ? 'Produce the initial moments of a scene' : 'Extend or conclude the current scene script'} with three to five entries, ` +
                 `based upon the Premise and the specified Scene Prompt. Work toward fulfilling the goal of the Scene Prompt; if this scene's script already feels complete, consider segueing toward the Upcoming Round (but don't start it yet—it is handled in a future skit).` +
-                `\n\n  Follow the structure of the strict Example Script formatting above: ` +
+                `\n\nFollow the structure of the strict Example Script formatting above: ` +
                 `actions are depicted in prose and character dialogue in quotation marks. Characters present their own actions and dialogue, while other events within the scene are attributed to NARRATOR. ` +
-                `Although a loose script format is employed, the actual content should be professionally edited narrative prose. ` +
+                `Although a loose script format is employed, the actual content should be professionally edited narrative prose.` +
                 (stage.saveData.disableImpersonation ?
                     `New entries refer to the player, ${stage.getPlayerActor().name}, in second-person; all other characters are referred to in third-person, even in their own entries.` :
                     `Entries from the player, ${stage.getPlayerActor().name}, are written in first-person, while other entries consistently refer to ${stage.getPlayerActor().name} in second-person; all other characters are referred to in third-person, even in their own entries.`) +
-                `\n\nTag Instruction:\n` +
-                `  Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
-                `\n\n  Character turn tags ("[CHARACTER NAME TURN]") should be used to indicate when a character is taking an action or speaking. Each entry must have a character turn tag to indicate who is performing the actions and dialogue in that entry. Consecutive turns can be used to reduce individual entry length. [NARRATOR TURN] can be used to indicate a general entry with no speaker.` +
-                `\n\n  Emotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
-                `\n\n  Pause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
+                ``) +
+                buildPromptSegment(`Tag Instruction`,
+                `Embedded within this script, you may employ special tags to trigger various game mechanics. ` +
+                `\n\nCharacter turn tags ("[CHARACTER NAME TURN]") should be used to indicate when a character is taking an action or speaking. Each entry must have a character turn tag to indicate who is performing the actions and dialogue in that entry. Consecutive turns can be used to reduce individual entry length. [NARRATOR TURN] can be used to indicate a general entry with no speaker.` +
+                `\n\nEmotion tags ("[CHARACTER NAME EXPRESSES JOY]") should be used to indicate visible emotional shifts in a character's appearance using simple one-word emotion labels. ` +
+                `\n\nPause tag ("[PAUSE]") can be used to indicate a pause in the skit, potentially marking an end to the segment, if it seems fitting. ` +
                 `\n\nThis scene is a brief visual novel skit within a game; as such, the scene avoids major developments which would fundamentally alter the mechanics or nature of the game, ` +
-                `instead developing content within the existing rules. ` +
-                (() => {
+                `instead developing content within the existing rules.`) +
+                buildPromptSegment(`Spice Level`, (() => {
                     const spiceLevel = stage.saveData.spice ?? 2;
                     const spiceInstructions = {
                         1: '\n\nSoulMatcher has a TV14 Rating: Romantic and flirty content is encouraged. Include playful banter, romantic tension, chemistry, and light sensual themes. Avoid overtly sexual content but embrace the romantic and seductive atmosphere of a dating show.',
@@ -309,8 +312,8 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                         3: '\n\nSoulMatcher is an Unrated Adults-Only Show: Explicit and risqué content is encouraged. Scenes may overtly feature pornographic or other mature material, sensual descriptions, passionate encounters, and other evocative adult situations. Embrace the full spectrum of taboo sexual content.'
                     };
                     return spiceInstructions[spiceLevel as keyof typeof spiceInstructions] || spiceInstructions[2];
-                })() +
-                ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? `\n\nNote: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Special emotion tags continue to use English (these are invisible to the user).` : '')
+                })()) +
+                ((stage.saveData.language || 'English').toLowerCase() !== 'english' ? buildPromptSegment('Language', `Note: The game is now being played in ${stage.saveData.language}. Regardless of historic language use, generate this skit content in ${stage.saveData.language} accordingly. Special emotion tags continue to use English (these are invisible to the user).`) : '')
             );
 
             const response = await stage.generator.textGen({
@@ -325,6 +328,15 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                 let text = response.result;
                 let endScene = false;
 
+                // skip to first turn tag.
+                const firstTurnIndex = text.search(/\[[^\]]+ turn\]/i);
+                if (firstTurnIndex >= 0) {
+                    text = text.slice(firstTurnIndex);
+                } else {
+                    console.warn('No turn tags found in response; unable to parse script entries. Response was:', response);
+                    continue;
+                }
+
                 // Strip double-asterisks. TODO: Remove this once other model issue is resolved.
                 text = text.replace(/\*\*/g, '');
                 // Replace directional quotation marks:
@@ -337,9 +349,11 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
 
                 // Parse response based on format "NAME: content"; content could be multi-line. We want to ensure that lines that don't start with a name are appended to the previous line.
                 const lines = text.split('\n');
-                const combinedLines: string[] = [];
+                const combinedEntries: { speaker: string; message: string }[] = [];
                 const combinedEmotionTags: {emotions: {[key: string]: Emotion}, movements: {[actorId: string]: string}}[] = [];
-                let currentLine = '';
+                let currentSpeaker = 'NARRATOR';
+                let currentMessage = '';
+                let hasCurrentEntry = false;
                 let currentEmotionTags: {[key: string]: Emotion} = {};
                 let currentMovements: {[actorId: string]: string} = {};
                 for (const line of lines) {
@@ -392,78 +406,94 @@ export async function generateSkitScript(skit: Skit, stage: Stage): Promise<{ en
                         }
                     }
 
+                    const tagsInLine = trimmed.match(/\[[^\]]+\]/g) || [];
+                    const turnTagRegex = /^(.+?)\s+turn$/i;
+                    const turnTag = tagsInLine
+                        .map(tag => tag.slice(1, -1).trim())
+                        .find(raw => turnTagRegex.test(raw));
+                    const turnMatch = turnTag ? turnTagRegex.exec(turnTag) : null;
+
+                    const startsNewEntry = !!turnMatch;
+
                     // Remove all tags:
                     trimmed = trimmed.replace(/\[([^\]]+)\]/g, '').trim();
 
-                    if (line.includes(':')) {
+                    if (startsNewEntry) {
                         // New line
-                        if (currentLine) {
-                            combinedLines.push(currentLine.trim());
+                        if (hasCurrentEntry) {
+                            combinedEntries.push({ speaker: currentSpeaker, message: currentMessage.trim()});
                             combinedEmotionTags.push({
                                 emotions: currentEmotionTags,
                                 movements: currentMovements
                             });
                         }
-                        currentLine = trimmed;
                         currentEmotionTags = newEmotionTags;
                         currentMovements = newMovements;
-                    } else {
+                        currentSpeaker = turnMatch ? turnMatch[1].trim() : 'NARRATOR';
+                        currentMessage = turnMatch ? trimmed : '';
+                        hasCurrentEntry = true;
+                    } else if (hasCurrentEntry) {
                         // Continuation of previous line
-                        currentLine += '\n' + trimmed;
+                        if (trimmed) {
+                            currentMessage += (currentMessage ? '\n' : '') + trimmed;
+                        }
                         currentEmotionTags = {...currentEmotionTags, ...newEmotionTags};
                         currentMovements = {...currentMovements, ...newMovements};
+                    } else if (trimmed) {
+                        // Content appears before any explicit turn tag, attribute to NARRATOR.
+                        currentSpeaker = 'NARRATOR';
+                        currentMessage = trimmed;
+                        hasCurrentEntry = true;
+                        currentEmotionTags = newEmotionTags;
+                        currentMovements = newMovements;
                     }
                 }
-                if (currentLine) {
-                    combinedLines.push(currentLine.trim());
+                if (hasCurrentEntry) {
+                    combinedEntries.push({ speaker: currentSpeaker, message: currentMessage.trim() });
                     combinedEmotionTags.push({
                         emotions: currentEmotionTags,
                         movements: currentMovements
                     });
                 }
 
-                // Convert combined lines into ScriptEntry objects by splitting at first ':'
-                const scriptEntries: ScriptEntry[] = combinedLines.map((l, index) => {
-                    const idx = l.indexOf(':');
-                    let speakerName = 'NARRATOR';
-                    let message = l;
-                    
-                    if (idx !== -1) {
-                        speakerName = l.slice(0, idx).trim();
-                        message = l.slice(idx + 1).trim();
-                    }
+                // Convert parsed entries into ScriptEntry objects.
+                const scriptEntries: ScriptEntry[] = combinedEntries.map((parsedEntry, index) => {
+                    let speaker = parsedEntry.speaker || 'NARRATOR';
+                    let speakerId = findBestNameMatch(speaker, Object.values(stage.saveData.actors))?.id || '';
+                    let message = parsedEntry.message || '';
 
-                    const speaker = findBestNameMatch(speakerName, Object.values(stage.saveData.actors)) || null;
-                    
-                    // Remove any remaining tags
-                    message = message.replace(/\[([^\]]+)\]/g, '').trim();
-                    
+                    const entry: ScriptEntry = { speakerId, speaker, message, speechUrl: '', actorEmotions: {} };
                     const tagData = combinedEmotionTags[index];
-                    // Convert emotion tags from actor names to actor IDs
-                    const actorEmotionsById: {[key: string]: Emotion} = {};
-                    for (const [actorName, emotion] of Object.entries(tagData.emotions)) {
-                        const actor = findBestNameMatch(actorName, Object.values(stage.saveData.actors));
-                        if (actor) {
-                            actorEmotionsById[actor.id] = emotion;
-                        }
+
+                    if (tagData.emotions && Object.keys(tagData.emotions).length > 0) {
+                        entry.actorEmotions = tagData.emotions;
                     }
-                    
-                    const entry: ScriptEntry = { speakerId: speaker?.id || '', message, speechUrl: '', actorEmotions: actorEmotionsById  };
-                    
                     return entry;
                 });
 
                 // Drop empty entries from scriptEntries and adjust speaker to any matching actor's name:
                 for (const entry of scriptEntries) {
                     if (!entry.message || entry.message.trim().length === 0) {
+                        const emotions = entry.actorEmotions || {};
+                        const nextEntry = scriptEntries[scriptEntries.indexOf(entry) + 1];
+                        if (nextEntry) {
+                            nextEntry.actorEmotions = {...(nextEntry.actorEmotions || {}), ...emotions};
+                            nextEntry.endScene = (nextEntry.endScene || entry.endScene);
+                        }
                         scriptEntries.splice(scriptEntries.indexOf(entry), 1);
+                        continue;
+                    }
+                    // Adjust speaker name to match actor name if possible
+                    const matched = findBestNameMatch(entry.speaker, [...Object.values(stage.saveData.actors), {name: stage.getPlayerActor().name, id: 'player'}]); // Include player as a possible match
+                    if (matched) {
+                        entry.speakerId = matched.id;
+                        entry.speaker = matched.name;
                     }
                 }
 
-                // If impersonation is disabled, find any player entries and remove it and everything that follows:
                 if (stage.saveData.disableImpersonation) {
                     // If impersonation is undesired, find any entry where the speaker matches the player's name and drop all messages beyond that point.
-                    const playerEntryIndex = scriptEntries.findIndex(entry => entry.speakerId === stage.getPlayerActor().id);
+                    const playerEntryIndex = scriptEntries.findIndex(entry => entry.speaker.toLowerCase() === stage.getPlayerActor().name.toLowerCase());
                     if (playerEntryIndex !== -1) {
                         console.log(`Player entry found at index ${playerEntryIndex}. Removing all subsequent entries to disable impersonation.`);
                         scriptEntries.splice(playerEntryIndex);
